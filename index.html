@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PRESTIGE BLOCKS — Factory Command Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --concrete:#D9D4C7;--concrete-dark:#B9B2A0;--slab:#EFEBE1;--surface:#FFFFFF;
+  --charcoal:#211E1A;--steel:#4B5257;--steel-dark:#343A3E;
+  --rust:#B5501E;--rust-dim:#8E3F17;--safety:#E0A521;--rebar:#8C6A4E;
+  --cured:#4C7357;--warn:#B5501E;--danger:#A3312A;--ok:#4C7357;--info:#3B6B82;
+  --border:#CFC8B6;--text:#211E1A;--text-dim:#5C564A;--muted:#8B8478;
+  --font-display:'Archivo Black',sans-serif;--font-head:'Barlow Condensed',sans-serif;
+  --font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--slab);color:var(--text);font-family:var(--font-body);min-height:100%;
+  background-image:radial-gradient(var(--concrete-dark) .6px,transparent .6px);background-size:14px 14px;}
+::-webkit-scrollbar{width:10px;height:10px;}::-webkit-scrollbar-thumb{background:var(--concrete-dark);border-radius:5px;}
+a{color:inherit;}
+.header{background:var(--charcoal);color:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;border-bottom:4px solid var(--rust);
+  padding-top:calc(16px + env(safe-area-inset-top,0px));}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{width:34px;height:34px;background:repeating-linear-gradient(45deg,var(--safety) 0 6px,var(--charcoal) 6px 12px);
+  border:2px solid var(--safety);border-radius:3px;flex-shrink:0;}
+.brand-text{font-family:var(--font-display);font-size:17px;letter-spacing:.5px;line-height:1;}
+.brand-sub{font-family:var(--font-head);font-size:12px;color:var(--concrete-dark);letter-spacing:1.5px;margin-top:4px;}
+.header-right{display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:11px;color:var(--concrete);}
+.live{width:8px;height:8px;background:var(--ok);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.main{padding:18px 20px 60px;max-width:1320px;margin:0 auto;}
+.tabs{display:flex;gap:3px;overflow-x:auto;background:var(--charcoal);padding:6px;border-radius:6px;margin-bottom:20px;
+  position:sticky;top:calc(66px + env(safe-area-inset-top,0px));z-index:90;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:9px 15px;border:none;background:none;color:var(--concrete-dark);font-family:var(--font-head);font-weight:600;
+  font-size:14px;letter-spacing:.4px;white-space:nowrap;cursor:pointer;border-radius:4px;transition:.15s;}
+.tab:hover{color:#fff;}.tab.active{background:var(--rust);color:#fff;}
+.view{display:none;}.view.active{display:block;}
+h2.page-title{font-family:var(--font-head);font-weight:700;font-size:26px;margin-bottom:4px;}
+.page-note{color:var(--text-dim);font-size:13px;margin-bottom:18px;max-width:640px;}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;}
+.mcard{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--rust);border-radius:6px;padding:16px;}
+.mcard.ok{border-left-color:var(--ok);}.mcard.warn{border-left-color:var(--safety);}.mcard.info{border-left-color:var(--info);}.mcard.danger{border-left-color:var(--danger);}
+.mlabel{font-family:var(--font-head);font-size:12px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px;}
+.mvalue{font-family:var(--font-mono);font-weight:700;font-size:28px;line-height:1;}
+.msub{font-size:11px;color:var(--muted);margin-top:6px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:16px;}
+.card-title{font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.two-col{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;}
+@media(max-width:840px){.two-col{grid-template-columns:1fr;}}
+label{font-size:11px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:4px;letter-spacing:.3px;}
+input,select{width:100%;background:var(--slab);border:1px solid var(--border);color:var(--text);padding:8px 10px;
+  border-radius:4px;font-size:13px;font-family:var(--font-body);outline:none;}
+input:focus,select:focus{border-color:var(--rust);}
+.form-row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:12px;}
+.btn{background:var(--rust);color:#fff;border:none;padding:9px 16px;border-radius:4px;font-family:var(--font-head);
+  font-weight:600;font-size:14px;letter-spacing:.4px;cursor:pointer;transition:.15s;}
+.btn:hover{background:var(--rust-dim);}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn.ghost:hover{border-color:var(--rust);color:var(--rust);}
+.btn.sm{padding:5px 10px;font-size:12px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:7px 8px;color:var(--text-dim);font-family:var(--font-head);letter-spacing:.5px;
+  border-bottom:2px solid var(--border);font-size:11.5px;}
+td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:hover td{background:var(--slab);}
+.scroll-x{overflow-x:auto;}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10.5px;font-weight:700;letter-spacing:.4px;}
+.badge.ok{background:#E4EDE6;color:var(--ok);border:1px solid var(--ok);}
+.badge.warn{background:#FBF0D8;color:#8A6A15;border:1px solid var(--safety);}
+.badge.danger{background:#F4DFDC;color:var(--danger);border:1px solid var(--danger);}
+.badge.info{background:#E0EAEE;color:var(--info);border:1px solid var(--info);}
+.empty{color:var(--muted);font-size:12.5px;padding:14px 0;text-align:center;}
+.flow{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:14px 0;}
+.flow-step{background:var(--slab);border:1.5px solid var(--charcoal);padding:12px 16px;font-size:12.5px;font-weight:600;
+  position:relative;flex:1;min-width:150px;text-align:center;}
+.flow-step:not(:last-child)::after{content:'→';position:absolute;right:-13px;top:50%;transform:translateY(-50%);
+  font-weight:900;color:var(--rust);z-index:2;font-size:16px;}
+@media(max-width:700px){.flow{flex-direction:column;}.flow-step:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-13px;transform:translateX(-50%);}}
+.reg-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.reg-card{border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--slab);}
+.reg-card h4{font-family:var(--font-head);font-size:15px;margin-bottom:6px;color:var(--rust-dim);}
+.reg-card p{font-size:12.5px;color:var(--text-dim);line-height:1.5;}
+.formula-box{background:var(--charcoal);color:var(--concrete);border-radius:6px;padding:16px;font-family:var(--font-mono);
+  font-size:13px;line-height:1.9;margin-bottom:14px;}
+.formula-box b{color:var(--safety);}
+.checklist{list-style:none;}
+.checklist li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.checklist li:last-child{border-bottom:none;}
+.checklist input{width:auto;accent-color:var(--rust);margin-top:2px;}
+.checklist .ctxt.done{text-decoration:line-through;color:var(--muted);}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.pipe-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px;}
+.pipe-col{background:var(--slab);border:1px solid var(--border);border-radius:6px;padding:10px;min-height:70px;}
+.pipe-col h5{font-family:var(--font-head);font-size:11.5px;letter-spacing:.5px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;}
+.pipe-count{font-family:var(--font-mono);font-weight:700;font-size:22px;}
+.footer-note{text-align:center;color:var(--muted);font-size:11px;margin-top:30px;}
+.hazard{background:repeating-linear-gradient(45deg,var(--safety) 0 12px,var(--charcoal) 12px 24px);height:5px;border-radius:3px;margin:0 0 18px;}
+@media(prefers-reduced-motion:reduce){.live{animation:none;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div><div class="brand-text">PRESTIGE BLOCKS</div><div class="brand-sub">FACTORY COMMAND CENTRE · KOFORIDUA</div></div>
+  </div>
+  <div class="header-right">
+    <span class="live"></span><span id="clockDate">—</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="tabs" id="tabs"></div>
+
+  <div id="views"></div>
+
+  <div class="footer-note">Data below is stored only in this browser (localStorage) — nothing is sent anywhere. Connect this front end to your own sheet/database backend to sync across devices and staff.</div>
+</div>
+
+<script>
+/* ---------- storage helpers ---------- */
+const S={
+  get(k,d){try{const v=localStorage.getItem('pbcc_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem('pbcc_'+k,JSON.stringify(v));}catch(e){}}
+};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const daysBetween=(a,b)=>Math.floor((new Date(b)-new Date(a))/86400000);
+function fmt(n){return Number(n||0).toLocaleString();}
+
+/* ---------- tabs / views ---------- */
+const TABS=[
+ ['overview','OVERVIEW'],['production','PRODUCTION & BATCHING'],['curing','CURING YARD'],
+ ['materials','RAW MATERIALS'],['dispatch','DISPATCH & WAYBILL'],['quality','QUALITY CONTROL (GSA)'],
+ ['pipeline','CLIENT PIPELINE'],['compliance','REGULATORY & SETUP'],['growth','GROWTH & SCALING'],['checklist','DAILY CHECKLIST']
+];
+document.getElementById('tabs').innerHTML=TABS.map((t,i)=>`<button class="tab${i===0?' active':''}" data-tab="${t[0]}" onclick="showTab('${t[0]}')">${t[1]}</button>`).join('');
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+id));
+}
+
+/* ---------- clock ---------- */
+function tickClock(){document.getElementById('clockDate').textContent=new Date().toLocaleString('en-GH',{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+setInterval(tickClock,30000);tickClock();
+
+/* ================= OVERVIEW ================= */
+function renderOverview(){
+  const prod=S.get('production',[]), cure=S.get('curing',[]), mat=S.get('materials',[]), disp=S.get('dispatch',[]);
+  const todayProd=prod.filter(r=>r.date===todayStr()).reduce((a,r)=>a+Number(r.qty||0),0);
+  const bagsUsedToday=prod.filter(r=>r.date===todayStr()).reduce((a,r)=>a+Number(r.bags||0),0);
+  const bagYield=bagsUsedToday? (todayProd/bagsUsedToday).toFixed(1):'—';
+  const curingStock=cure.filter(r=>daysBetween(r.date,todayStr())<14).reduce((a,r)=>a+Number(r.qty||0),0);
+  const cementIn=mat.filter(r=>r.type==='cement').reduce((a,r)=>a+Number(r.qty||0),0);
+  const cementUsed=prod.reduce((a,r)=>a+Number(r.bags||0),0);
+  const cementStock=cementIn-cementUsed;
+  const dustIn=mat.filter(r=>r.type==='dust').reduce((a,r)=>a+Number(r.qty||0),0);
+  const totalProduced=prod.reduce((a,r)=>a+Number(r.qty||0),0);
+  const totalBreak=prod.reduce((a,r)=>a+Number(r.broken||0),0)+disp.reduce((a,r)=>a+Number(r.broken||0),0);
+  const scrapRate=totalProduced?((totalBreak/totalProduced)*100).toFixed(2):'0.00';
+  return `
+  <h2 class="page-title">Overview</h2>
+  <p class="page-note">Live snapshot pulled from today's production, curing yard, and materials logs. Add entries in the other tabs and this page updates automatically.</p>
+  <div class="grid">
+    <div class="mcard"><div class="mlabel">Blocks Molded Today</div><div class="mvalue">${fmt(todayProd)}</div><div class="msub">across all block types</div></div>
+    <div class="mcard ${bagYield!=='—'&&bagYield<25?'warn':'ok'}"><div class="mlabel">Cement Bag Yield (Today)</div><div class="mvalue">${bagYield}</div><div class="msub">blocks per bag · target 25–30</div></div>
+    <div class="mcard info"><div class="mlabel">Curing Yard Inventory</div><div class="mvalue">${fmt(curingStock)}</div><div class="msub">blocks under 14-day cure</div></div>
+    <div class="mcard ${cementStock<50?'danger':'ok'}"><div class="mlabel">Cement Bags In Stock</div><div class="mvalue">${fmt(cementStock)}</div><div class="msub">${cementStock<50?'reorder soon':'healthy buffer'}</div></div>
+    <div class="mcard info"><div class="mlabel">Crusher Dust / Sand Stock</div><div class="mvalue">${fmt(dustIn)}</div><div class="msub">tipper loads received (lifetime)</div></div>
+    <div class="mcard ${scrapRate>2?'danger':'ok'}"><div class="mlabel">Overall Scrap / Breakage Rate</div><div class="mvalue">${scrapRate}%</div><div class="msub">target: keep below 2%</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">What this factory tracks daily</div>
+    <p style="font-size:13px;color:var(--text-dim);line-height:1.6">Blocks Molded · Curing Yard Inventory · Cement Bag Yield · Crusher Dust Stock (tons) · Aggregate Mix Ratios · Waybill accuracy · Compressive strength compliance. Use the tabs above to log each area — Overview recalculates from those logs, nothing is entered here directly.</p>
+  </div>`;
+}
+
+/* ================= PRODUCTION & BATCHING ================= */
+const BLOCK_TYPES=['6-inch Solid','6-inch Hollow','5-inch Solid','5-inch Hollow','Interlocking Paver'];
+const MIX_REF=[
+ ['6-inch Solid','1 bag : 25 blocks','Highest cement demand — full solid fill'],
+ ['6-inch Hollow','1 bag : 28–30 blocks','Standard wall block, most common order'],
+ ['5-inch Solid','1 bag : 28 blocks','Used for partitions, lighter load walls'],
+ ['5-inch Hollow','1 bag : 30–32 blocks','Cheapest per-unit cement cost'],
+ ['Interlocking Paver','1 bag : 18–22 pavers','Higher cement ratio for surface strength']
+];
+function addProduction(){
+  const r={id:uid(),date:document.getElementById('pDate').value||todayStr(),type:document.getElementById('pType').value,
+    qty:document.getElementById('pQty').value,bags:document.getElementById('pBags').value,broken:document.getElementById('pBroken').value||0};
+  if(!r.qty||!r.bags){alert('Enter blocks produced and bags used.');return;}
+  const list=S.get('production',[]);list.unshift(r);S.set('production',list);
+  document.getElementById('pQty').value='';document.getElementById('pBags').value='';document.getElementById('pBroken').value='';
+  renderAll();
+}
+function delRow(store,id){const list=S.get(store,[]).filter(r=>r.id!==id);S.set(store,list);renderAll();}
+function renderProduction(){
+  const list=S.get('production',[]);
+  const rows=list.map(r=>{
+    const yieldv=r.bags>0?(r.qty/r.bags).toFixed(1):'—';
+    return `<tr><td>${r.date}</td><td>${r.type}</td><td class="mono">${fmt(r.qty)}</td><td class="mono">${fmt(r.bags)}</td><td class="mono">${yieldv}</td><td class="mono">${fmt(r.broken)}</td><td><button class="btn ghost sm" onclick="delRow('production','${r.id}')">Remove</button></td></tr>`;
+  }).join('');
+  return `
+  <h2 class="page-title">Production &amp; Batching</h2>
+  <p class="page-note">Log every batching run: blocks produced, cement bags used, and mold breakages. Bag yield is calculated automatically per entry.</p>
+  <div class="card">
+    <div class="card-title">Log today's production</div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="pDate" value="${todayStr()}"></div>
+      <div><label>Block Type</label><select id="pType">${BLOCK_TYPES.map(b=>`<option>${b}</option>`).join('')}</select></div>
+      <div><label>Blocks Produced</label><input type="number" id="pQty" placeholder="e.g. 600"></div>
+      <div><label>Cement Bags Used</label><input type="number" id="pBags" placeholder="e.g. 22"></div>
+      <div><label>Molds Broken</label><input type="number" id="pBroken" placeholder="0"></div>
+    </div>
+    <button class="btn" onclick="addProduction()">Add Entry</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Production Log</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Date</th><th>Type</th><th>Qty</th><th>Bags</th><th>Yield/Bag</th><th>Broken</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No production logged yet.</div>'}</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Cement-to-Dust Mix Ratio Reference</div>
+    <div class="scroll-x"><table><thead><tr><th>Block Type</th><th>Standard Ratio</th><th>Notes</th></tr></thead><tbody>
+    ${MIX_REF.map(m=>`<tr><td>${m[0]}</td><td class="mono">${m[1]}</td><td style="color:var(--text-dim)">${m[2]}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">Ratios shift with sand/crusher dust quality and water-cement balance — enforce discipline here to prevent weak blocks or silent margin loss.</p>
+  </div>`;
+}
+
+/* ================= CURING YARD ================= */
+function addCuring(){
+  const r={id:uid(),date:document.getElementById('cDate').value||todayStr(),type:document.getElementById('cType').value,qty:document.getElementById('cQty').value,amDone:false,pmDone:false};
+  if(!r.qty){alert('Enter batch quantity.');return;}
+  const list=S.get('curing',[]);list.unshift(r);S.set('curing',list);
+  document.getElementById('cQty').value='';renderAll();
+}
+function toggleWater(id,which){
+  const list=S.get('curing',[]);const r=list.find(x=>x.id===id);if(r){r[which]=!r[which];S.set('curing',list);renderAll();}
+}
+function renderCuring(){
+  const list=S.get('curing',[]);
+  const rows=list.map(r=>{
+    const d=daysBetween(r.date,todayStr());
+    let stage='badge ok',label='Ready for dispatch';
+    if(d<3){stage='badge danger';label='Wet cure (Day '+d+')';}
+    else if(d<7){stage='badge warn';label='Early cure (Day '+d+')';}
+    else if(d<14){stage='badge info';label='Strengthening (Day '+d+')';}
+    return `<tr><td>${r.date}</td><td>${r.type}</td><td class="mono">${fmt(r.qty)}</td><td><span class="${stage}">${label}</span></td>
+    <td><label style="display:inline-flex;gap:4px;align-items:center;font-size:11px"><input type="checkbox" style="width:auto" ${r.amDone?'checked':''} onchange="toggleWater('${r.id}','amDone')">AM</label></td>
+    <td><label style="display:inline-flex;gap:4px;align-items:center;font-size:11px"><input type="checkbox" style="width:auto" ${r.pmDone?'checked':''} onchange="toggleWater('${r.id}','pmDone')">PM</label></td>
+    <td><button class="btn ghost sm" onclick="delRow('curing','${r.id}')">Remove</button></td></tr>`;
+  }).join('');
+  return `
+  <h2 class="page-title">Curing Yard Inventory</h2>
+  <p class="page-note">Every batch needs 7–14 days of watering before it reaches full compressive strength. Track batch age and daily AM/PM watering here.</p>
+  <div class="card">
+    <div class="card-title">Add batch to curing yard</div>
+    <div class="form-row">
+      <div><label>Date Molded</label><input type="date" id="cDate" value="${todayStr()}"></div>
+      <div><label>Block Type</label><select id="cType">${BLOCK_TYPES.map(b=>`<option>${b}</option>`).join('')}</select></div>
+      <div><label>Batch Quantity</label><input type="number" id="cQty" placeholder="e.g. 600"></div>
+    </div>
+    <button class="btn" onclick="addCuring()">Add Batch</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Curing Yard — Batch Ages</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Molded</th><th>Type</th><th>Qty</th><th>Stage</th><th>AM Water</th><th>PM Water</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No batches in the curing yard.</div>'}</div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">Day 0–2: wet cure, most vulnerable. Day 3–6: early strength. Day 7–13: strengthening. Day 14+: full compressive strength, ready to load.</p>
+  </div>`;
+}
+
+/* ================= RAW MATERIALS ================= */
+const SUPPLIERS={cement:['GAC','Ghacem','Dangote','Cimaf'],dust:['Local Quarry','Contract Tipper'],water:['Borehole','Tanker Supplier']};
+function updateMatSupplier(){
+  const type=document.getElementById('mType').value;
+  document.getElementById('mSupplier').innerHTML=SUPPLIERS[type].map(s=>`<option>${s}</option>`).join('');
+  document.getElementById('mUnit').textContent=type==='cement'?'bags':type==='dust'?'tipper loads':'tankers';
+}
+function addMaterial(){
+  const r={id:uid(),date:document.getElementById('mDate').value||todayStr(),type:document.getElementById('mType').value,
+    supplier:document.getElementById('mSupplier').value,qty:document.getElementById('mQty').value};
+  if(!r.qty){alert('Enter quantity received.');return;}
+  const list=S.get('materials',[]);list.unshift(r);S.set('materials',list);
+  document.getElementById('mQty').value='';renderAll();
+}
+function renderMaterials(){
+  const list=S.get('materials',[]);
+  const rows=list.map(r=>`<tr><td>${r.date}</td><td style="text-transform:capitalize">${r.type}</td><td>${r.supplier}</td><td class="mono">${fmt(r.qty)}</td><td><button class="btn ghost sm" onclick="delRow('materials','${r.id}')">Remove</button></td></tr>`).join('');
+  return `
+  <h2 class="page-title">Raw Material Logistics</h2>
+  <p class="page-note">Log every cement delivery, crusher dust / sand tipper load, and water tanker receipt so stock reconciles against batching records.</p>
+  <div class="card">
+    <div class="card-title">Log a delivery</div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="mDate" value="${todayStr()}"></div>
+      <div><label>Material</label><select id="mType" onchange="updateMatSupplier()"><option value="cement">Cement</option><option value="dust">Crusher Dust / Sand</option><option value="water">Water</option></select></div>
+      <div><label>Supplier</label><select id="mSupplier"></select></div>
+      <div><label>Quantity (<span id="mUnit">bags</span>)</label><input type="number" id="mQty" placeholder="e.g. 50"></div>
+    </div>
+    <button class="btn" onclick="addMaterial()">Add Delivery</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Delivery Log</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Date</th><th>Material</th><th>Supplier</th><th>Qty</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No deliveries logged yet.</div>'}</div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">Lock cement stores and reconcile daily against production's bags-used figure — this is the single biggest leakage point in a block yard.</p>
+  </div>`;
+}
+
+/* ================= DISPATCH & WAYBILL ================= */
+function addDispatch(){
+  const r={id:uid(),date:document.getElementById('dDate').value||todayStr(),driver:document.getElementById('dDriver').value,
+    dest:document.getElementById('dDest').value,qty:document.getElementById('dQty').value,waybill:document.getElementById('dWaybill').value,broken:document.getElementById('dBroken').value||0};
+  if(!r.qty||!r.waybill){alert('Enter quantity and waybill number.');return;}
+  const list=S.get('dispatch',[]);list.unshift(r);S.set('dispatch',list);
+  ['dDriver','dDest','dQty','dWaybill','dBroken'].forEach(id=>document.getElementById(id).value='');
+  renderAll();
+}
+function renderDispatch(){
+  const list=S.get('dispatch',[]);
+  const rows=list.map(r=>{
+    const lossPct=r.qty>0?((r.broken/r.qty)*100).toFixed(2):'0.00';
+    return `<tr><td>${r.date}</td><td>${r.driver||'—'}</td><td>${r.dest||'—'}</td><td class="mono">${fmt(r.qty)}</td><td class="mono">${r.waybill}</td><td class="mono">${fmt(r.broken)}</td><td><span class="badge ${lossPct>2?'danger':'ok'}">${lossPct}%</span></td><td><button class="btn ghost sm" onclick="delRow('dispatch','${r.id}')">Remove</button></td></tr>`;
+  }).join('');
+  return `
+  <h2 class="page-title">Dispatch &amp; Waybill</h2>
+  <p class="page-note">Every truck leaving the yard needs a signed waybill matching the exact block count. Keep transit breakage below 2%.</p>
+  <div class="card">
+    <div class="card-title">Log a dispatch</div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="dDate" value="${todayStr()}"></div>
+      <div><label>Driver / Truck</label><input id="dDriver" placeholder="e.g. Kwame — Tipper 3"></div>
+      <div><label>Destination</label><input id="dDest" placeholder="e.g. Kumasi site"></div>
+      <div><label>Blocks Loaded</label><input type="number" id="dQty" placeholder="e.g. 400"></div>
+      <div><label>Waybill No.</label><input id="dWaybill" placeholder="e.g. WB-0231"></div>
+      <div><label>Broken in Transit</label><input type="number" id="dBroken" placeholder="0"></div>
+    </div>
+    <button class="btn" onclick="addDispatch()">Add Dispatch</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Dispatch Log</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Date</th><th>Driver</th><th>Destination</th><th>Qty</th><th>Waybill</th><th>Broken</th><th>Loss %</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No dispatches logged yet.</div>'}</div>
+  </div>`;
+}
+
+/* ================= QUALITY CONTROL (GSA) ================= */
+function addQuality(){
+  const r={id:uid(),date:document.getElementById('qDate').value||todayStr(),type:document.getElementById('qType').value,
+    batch:document.getElementById('qBatch').value,result:document.getElementById('qResult').value};
+  if(!r.result){alert('Enter the compressive strength result.');return;}
+  const list=S.get('quality',[]);list.unshift(r);S.set('quality',list);
+  document.getElementById('qBatch').value='';document.getElementById('qResult').value='';renderAll();
+}
+function renderQuality(){
+  const list=S.get('quality',[]);
+  const rows=list.map(r=>{
+    const pass=Number(r.result)>=3.5;
+    return `<tr><td>${r.date}</td><td>${r.type}</td><td>${r.batch||'—'}</td><td class="mono">${r.result} N/mm²</td><td><span class="badge ${pass?'ok':'danger'}">${pass?'PASS':'FAIL'}</span></td><td><button class="btn ghost sm" onclick="delRow('quality','${r.id}')">Remove</button></td></tr>`;
+  }).join('');
+  return `
+  <h2 class="page-title">Quality Control — GSA Compliance</h2>
+  <p class="page-note">Log compression test results against the Ghana Standards Authority range for structural blocks: 3.5 N/mm² to 7.0 N/mm².</p>
+  <div class="card">
+    <div class="card-title">Log a compression test</div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="qDate" value="${todayStr()}"></div>
+      <div><label>Block Type</label><select id="qType">${BLOCK_TYPES.map(b=>`<option>${b}</option>`).join('')}</select></div>
+      <div><label>Batch Ref</label><input id="qBatch" placeholder="e.g. Batch 14-Sep"></div>
+      <div><label>Result (N/mm²)</label><input type="number" step="0.1" id="qResult" placeholder="e.g. 4.2"></div>
+    </div>
+    <button class="btn" onclick="addQuality()">Add Test Result</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Test Log</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Date</th><th>Type</th><th>Batch</th><th>Result</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No test results logged yet.</div>'}</div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">Target compressive strength range: <b>3.5 N/mm² – 7.0 N/mm²</b>, per Ghanaian building code requirements for load-bearing 5-inch and 6-inch blocks.</p>
+  </div>`;
+}
+
+/* ================= CLIENT PIPELINE ================= */
+const PIPE_STAGES=['Inquiry','Site Visit / Sample','Proforma Sent','Deposit Paid','In Production / Curing','Dispatched / Delivered'];
+function addLead(){
+  const r={id:uid(),name:document.getElementById('lName').value,type:document.getElementById('lType').value,
+    qty:document.getElementById('lQty').value,stage:document.getElementById('lStage').value};
+  if(!r.name){alert('Enter a client / project name.');return;}
+  const list=S.get('leads',[]);list.unshift(r);S.set('leads',list);
+  document.getElementById('lName').value='';document.getElementById('lQty').value='';renderAll();
+}
+function setStage(id,stage){const list=S.get('leads',[]);const r=list.find(x=>x.id===id);if(r){r.stage=stage;S.set('leads',list);renderAll();}}
+function renderPipeline(){
+  const list=S.get('leads',[]);
+  const counts=PIPE_STAGES.map(s=>list.filter(l=>l.stage===s).length);
+  const rows=list.map(r=>`<tr><td>${r.name}</td><td>${r.type||'—'}</td><td class="mono">${fmt(r.qty)}</td><td><select onchange="setStage('${r.id}',this.value)">${PIPE_STAGES.map(s=>`<option ${s===r.stage?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="btn ghost sm" onclick="delRow('leads','${r.id}')">Remove</button></td></tr>`).join('');
+  return `
+  <h2 class="page-title">Client Pipeline</h2>
+  <p class="page-note">Construction project leads move through six stages from first inquiry to delivered load.</p>
+  <div class="pipe-grid">${PIPE_STAGES.map((s,i)=>`<div class="pipe-col"><h5>${s}</h5><div class="pipe-count">${counts[i]}</div></div>`).join('')}</div>
+  <div class="card">
+    <div class="card-title">Add a lead</div>
+    <div class="form-row">
+      <div><label>Client / Project</label><input id="lName" placeholder="e.g. Osei Building Ltd"></div>
+      <div><label>Block Type Wanted</label><select id="lType">${BLOCK_TYPES.map(b=>`<option>${b}</option>`).join('')}</select></div>
+      <div><label>Est. Quantity</label><input type="number" id="lQty" placeholder="e.g. 2000"></div>
+      <div><label>Stage</label><select id="lStage">${PIPE_STAGES.map(s=>`<option>${s}</option>`).join('')}</select></div>
+    </div>
+    <button class="btn" onclick="addLead()">Add Lead</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Pipeline Detail</div>
+    <div class="scroll-x">${list.length?`<table><thead><tr><th>Client</th><th>Type</th><th>Qty</th><th>Stage</th><th></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No leads yet.</div>'}</div>
+  </div>`;
+}
+
+/* ================= COMPLIANCE ================= */
+function renderCompliance(){
+  return `
+  <h2 class="page-title">Ghana Regulatory &amp; Factory Setup</h2>
+  <p class="page-note">Establishing a commercial concrete block yard requires clearance across local government, land, environment, and product-quality bodies.</p>
+  <div class="flow">
+    <div class="flow-step">Business &amp; Land Registration</div>
+    <div class="flow-step">EPA Environmental Permit</div>
+    <div class="flow-step">Assembly Building / Dev Permit</div>
+    <div class="flow-step">GSA Quality Certification</div>
+  </div>
+  <div class="reg-grid">
+    <div class="reg-card"><h4>RGD — Registrar General's Dept</h4><p>Register as a Limited Liability Company or Enterprise under the correct ISIC manufacturing code before anything else moves forward.</p></div>
+    <div class="reg-card"><h4>District Business Operating Permit</h4><p>Apply to the local Municipal/District Assembly (e.g. New Juaben South Municipal Assembly, Koforidua) for a licence to operate a commercial yard.</p></div>
+    <div class="reg-card"><h4>Land Indenture &amp; Leasehold</h4><p>Register a lease with an approved site plan from the Lands Commission, with adequate distance from residential buffer zones to avoid noise complaints from vibrator machines.</p></div>
+    <div class="reg-card"><h4>EPA Environmental Permit</h4><p>Required under Environmental Assessment Regulations (L.I. 1652). Submit Form EA1 covering dust control, noise pollution, wash-water runoff, and worker safety gear.</p></div>
+    <div class="reg-card"><h4>Ghana National Fire Service</h4><p>Install site fire extinguishers, set fuel storage safety protocols, and mark an emergency assembly point before certification.</p></div>
+    <div class="reg-card"><h4>GSA Quality Certification</h4><p>Lab testing and certification of block load-bearing capacity, compliant with Ghanaian building codes for 5-inch and 6-inch solid and hollow structural blocks.</p></div>
+  </div>`;
+}
+
+/* ================= GROWTH & SCALING ================= */
+function renderGrowth(){
+  return `
+  <h2 class="page-title">Growth, Management &amp; Scaling</h2>
+  <p class="page-note">The three numbers that decide whether the yard is profitable, plus the daily disciplines that protect margin.</p>
+  <div class="formula-box">
+    <b>Bag Yield</b> = Total Blocks Produced ÷ Bags of Cement Used<br>
+    <b>Daily Scrap Rate</b> = (Damaged Blocks ÷ Total Production Output) × 100<br>
+    <b>Net Revenue Per Tipper Load</b> = Load Sale Price − (Cement + Dust + Fuel + Labour + Transit Loss Cost)
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Daily Operations &amp; Machine Care</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.7">
+      • Structured AM and PM watering across the 7–14 day curing cycle<br>
+      • Daily greasing of vibrator bearings and hydraulic oil checks<br>
+      • Mold cleaning after every shift, generator maintenance logged<br>
+      • Fuel and cement stores locked, reconciled daily against batch logs
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title">Fleet &amp; Leakage Prevention</div>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.7">
+      • Waybill verified against exact block count on every truck out<br>
+      • Breakage recorded at production, yard movement, and offloading<br>
+      • Keep transit loss below 2% — flag anything above it immediately
+      </p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Where the growth comes from</div>
+    <p style="font-size:13px;color:var(--text-dim);line-height:1.7">Build direct relationships with local masons, structural engineers, commercial developers, and district contractors — they are the repeat-order backbone, not one-off retail buyers. Once daily metrics are stable, expand tiered production from standard 5"/6" hollow and solid blocks into interlocking pavers, concrete culverts, and kerbs — these carry noticeably better margins than standard walling block.</p>
+  </div>`;
+}
+
+/* ================= DAILY CHECKLIST ================= */
+const CHECKLIST_ITEMS=[
+ 'AM watering round — all active curing batches',
+ 'PM watering round — all active curing batches',
+ 'Vibrator bearings greased, hydraulic oil checked',
+ 'Molds cleaned after shift',
+ 'Generator fuel &amp; run-hours logged',
+ 'Cement store reconciled against today\u2019s bags-used figure',
+ 'All outgoing waybills matched to loaded block count',
+ 'Breakage recorded — production, yard, and transit'
+];
+function toggleCheck(i){
+  const key='checklist_'+todayStr();const state=S.get(key,{});state[i]=!state[i];S.set(key,state);renderAll();
+}
+function renderChecklist(){
+  const key='checklist_'+todayStr();const state=S.get(key,{});
+  const items=CHECKLIST_ITEMS.map((t,i)=>`<li><input type="checkbox" ${state[i]?'checked':''} onchange="toggleCheck(${i})"><span class="ctxt${state[i]?' done':''}">${t}</span></li>`).join('');
+  const doneCount=CHECKLIST_ITEMS.filter((_,i)=>state[i]).length;
+  return `
+  <h2 class="page-title">Daily Checklist — ${todayStr()}</h2>
+  <p class="page-note">${doneCount} of ${CHECKLIST_ITEMS.length} completed today. Resets automatically at midnight.</p>
+  <div class="card"><ul class="checklist">${items}</ul></div>`;
+}
+
+/* ---------- render all ---------- */
+const RENDERERS={overview:renderOverview,production:renderProduction,curing:renderCuring,materials:renderMaterials,
+  dispatch:renderDispatch,quality:renderQuality,pipeline:renderPipeline,compliance:renderCompliance,growth:renderGrowth,checklist:renderChecklist};
+function renderAll(){
+  const active=document.querySelector('.tab.active')?.dataset.tab||'overview';
+  document.getElementById('views').innerHTML=TABS.map(t=>`<div class="view${t[0]===active?' active':''}" id="view-${t[0]}">${RENDERERS[t[0]]()}</div>`).join('');
+  if(document.getElementById('mType'))updateMatSupplier();
+}
+document.addEventListener('DOMContentLoaded',renderAll);
+</script>
+</body>
+</html>
