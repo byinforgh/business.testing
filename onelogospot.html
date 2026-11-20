@@ -1,0 +1,966 @@
+<title>OneLogoSpot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: fixed left rail (nav + client link dock at bottom-left), working area to the right. Palette is the logo's black and white plus one cobalt used only for focus and drop targets. */
+:root{
+  --bg:#F1F2F2; --surface:#FFFFFF; --surface-2:#E8EAEA; --ink:#0D0E0F; --ink-2:#575B5E; --line:#D6D9DA;
+  --accent:#1E4DFF; --accent-ink:#FFFFFF; --ok:#17803D; --warn:#A8530A; --bad:#C0262D;
+  --font-display:'Montserrat',system-ui,sans-serif; --font-body:'Figtree',system-ui,sans-serif; --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --gutter:clamp(16px,3vw,40px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A0B0C; --surface:#131415; --surface-2:#1D1F21; --ink:#F2F3F3; --ink-2:#9DA1A5; --line:#2B2D2F;
+  --accent:#7E97FF; --accent-ink:#0A0B0C; --ok:#4CC27B; --warn:#E3A23B; --bad:#F0666C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A0B0C; --surface:#131415; --surface-2:#1D1F21; --ink:#F2F3F3; --ink-2:#9DA1A5; --line:#2B2D2F;
+  --accent:#7E97FF; --accent-ink:#0A0B0C; --ok:#4CC27B; --warn:#E3A23B; --bad:#F0666C; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--font-body);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font:500 11px/1 var(--font-display);letter-spacing:.34em;text-transform:uppercase;color:var(--ink-2)}
+
+/* shell */
+.shell{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;gap:28px;padding:28px 20px 20px;border-right:1px solid var(--line);background:var(--surface)}
+.brand{display:block;width:176px;color:var(--ink)}
+.brand svg{display:block;width:100%;height:auto}
+.wm{display:flex;flex-direction:column;gap:7px;color:var(--ink)}
+.wm b{font:800 24px/1 var(--font-display);letter-spacing:-.015em}
+.wm span{font:500 10px/1.3 var(--font-display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;padding:11px 12px;border:0;border-radius:6px;background:transparent;color:var(--ink-2);font:600 14px var(--font-body)}
+.nav button:hover{background:var(--surface-2);color:var(--ink)}
+.nav button[aria-current=page]{background:var(--ink);color:var(--bg)}
+.nav .count{font:500 12px var(--font-mono);opacity:.75}
+
+.linkdock{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.dk-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dk-title{font:700 14px/1.3 var(--font-display);overflow-wrap:anywhere}
+.dk-row{display:flex;gap:6px;min-width:0}
+.dk-row input{flex:1;min-width:0;padding:8px 9px;border:1px solid var(--line);border-radius:5px;background:var(--surface);font:400 12px var(--font-mono);color:var(--ink-2)}
+.dk-note{font-size:12.5px;color:var(--ink-2)}
+.dk-open{font-size:13px;font-weight:600;color:var(--ink);text-underline-offset:3px}
+
+main{min-width:0;padding-block:36px 72px;padding-inline:var(--gutter)}
+.page{max-width:1180px;margin-inline:auto;display:flex;flex-direction:column;gap:24px}
+.ph{display:flex;flex-direction:column;gap:10px;max-width:62ch}
+.ph h1{font:800 clamp(26px,3.6vw,40px)/1.05 var(--font-display);letter-spacing:-.01em;text-transform:uppercase}
+.lede{color:var(--ink-2);font-size:16px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel h2{font:700 15px/1.2 var(--font-display);letter-spacing:.04em;text-transform:uppercase}
+.sub{color:var(--ink-2);font-size:14px}
+
+/* buttons, chips */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font:600 14px var(--font-body);color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{opacity:.88}
+.btn.sm{padding:7px 11px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn.danger[data-armed=true]{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font:600 11.5px/1.4 var(--font-body);background:var(--surface-2);color:var(--ink-2)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.live,.pill.done{color:var(--ok)}
+.pill.draft,.pill.processing{color:var(--warn)}
+.pill.failed{color:var(--bad)}
+.pill.queued{color:var(--ink-2)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.field input[type=text],.field input[type=number]{padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);width:100%}
+.field input:focus{border-color:var(--accent)}
+
+.switchrow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.switchrow .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.switchrow .t b{font-weight:600}
+.switchrow .t span{font-size:13.5px;color:var(--ink-2)}
+.switch{flex:none;position:relative;width:44px;height:26px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--ink-2);transition:transform .15s,background .15s}
+.switch[aria-checked=true]{background:var(--ink);border-color:var(--ink)}
+.switch[aria-checked=true]::after{transform:translateX(18px);background:var(--bg)}
+
+/* upload layout */
+.up-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.drop{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:36px 20px;border:1.5px dashed var(--line);border-radius:4px;background:var(--bg);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.drag{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.drop.busy{opacity:.55;pointer-events:none}
+.drop .ico{width:46px;color:var(--ink)}
+.drop .ico svg{display:block;width:100%;height:auto}
+.drop b{font:700 18px var(--font-display)}
+.drop span{color:var(--ink-2);font-size:14px}
+.counter{display:flex;align-items:center;gap:14px}
+.ticks{flex:1;display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
+.ticks i{height:14px;border-radius:1px;background:var(--surface-2)}
+.ticks i.on{background:var(--ink)}
+.counter .mono{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.notice{font-size:13.5px;color:var(--warn)}
+.queue{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.q{display:flex;flex-direction:column;gap:6px;min-width:0}
+.q .im{aspect-ratio:4/3;overflow:hidden;border-radius:3px;background:var(--surface-2);position:relative}
+.q img{width:100%;height:100%;object-fit:cover;display:block}
+.q .x{position:absolute;top:6px;right:6px;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:rgba(10,11,12,.74);color:#fff;font:600 18px/1 var(--font-body);display:flex;align-items:center;justify-content:center}
+.q .x:hover{background:var(--bad)}
+.q .bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:transparent}
+.q .bar i{display:block;height:100%;width:0;background:var(--accent)}
+.q.processing .bar i{width:60%;animation:slide 1s ease-in-out infinite alternate}
+.q.done .bar i{width:100%;background:var(--ok)}
+@keyframes slide{from{margin-left:0}to{margin-left:40%}}
+.q .nm{font-size:12.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q .row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.done-card{gap:14px}
+.done-card h2{font-size:18px}
+
+/* placement controls */
+.prev{display:block;width:100%;height:auto;border-radius:3px;background:var(--surface-2)}
+.prevcap{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}
+.ctl{display:flex;flex-direction:column;gap:8px}
+.posgrid{display:grid;grid-template-columns:repeat(3,34px);gap:4px}
+.posgrid button,.tilebtn{height:34px;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:0}
+.posgrid button[aria-pressed=true],.tilebtn[aria-pressed=true]{background:var(--ink);border-color:var(--ink)}
+.posrow{display:flex;gap:14px;align-items:flex-end}
+.tilebtn{padding:0 12px;font:600 13px var(--font-body);color:var(--ink-2)}
+.tilebtn[aria-pressed=true]{color:var(--bg)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface);align-self:flex-start}
+.seg button{padding:8px 13px;border:0;background:transparent;color:var(--ink-2);font:600 13px var(--font-body)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.rng{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.rng label{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.rng output{font:500 13px var(--font-mono);color:var(--ink)}
+.rng input{grid-column:1/-1;width:100%;accent-color:var(--accent);margin:4px 0 0}
+
+/* gallery */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font:600 13px var(--font-body);color:var(--ink-2)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sess{display:flex;flex-direction:column;gap:16px}
+.sess-head{display:flex;flex-wrap:wrap;gap:14px 24px;justify-content:space-between;align-items:flex-start}
+.sess-title{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 260px}
+.sess-title input{font:800 22px/1.15 var(--font-display);padding:4px 6px;margin-left:-6px;border:1px solid transparent;border-radius:4px;background:transparent;width:100%;text-transform:uppercase;letter-spacing:-.005em}
+.sess-title input:hover{border-color:var(--line)}
+.sess-title input:focus{border-color:var(--accent);outline:0;background:var(--bg)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px;color:var(--ink-2)}
+.sess-actions{display:flex;flex-wrap:wrap;gap:8px}
+.linkrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.linkrow input{flex:1 1 260px;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:400 13px var(--font-mono);color:var(--ink-2)}
+.sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.ph-card{display:flex;flex-direction:column;gap:6px;background:none;border:0;padding:0;text-align:left;min-width:0}
+.ph-card .im{aspect-ratio:3/2;background:var(--surface-2);border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ph-card img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.ph-card:hover img{transform:scale(1.03)}
+.ph-card .cap{display:flex;justify-content:space-between;gap:8px;font:400 11.5px var(--font-mono);color:var(--ink-2)}
+.empty{padding:44px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink-2)}
+.empty b{font:700 18px var(--font-display);color:var(--ink)}
+.empty p{max-width:44ch}
+.example-tag{font:500 11px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line);border-radius:3px;padding:2px 6px}
+
+/* setup page */
+.cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.stat b{font:700 24px var(--font-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--ink-2)}
+.meter{height:8px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ink)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+td:first-child{font-weight:600;white-space:nowrap}
+.diagram{overflow-x:auto}
+.diagram svg{display:block;min-width:620px;width:100%;height:auto}
+.dg-box{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.dg-box.key{stroke:var(--ink)}
+.dg-t{fill:var(--ink);font:700 14px var(--font-display)}
+.dg-s{fill:var(--ink-2);font:400 12px var(--font-body)}
+.dg-a{stroke:var(--ink-2);stroke-width:1.5;fill:none}
+.dg-h{fill:var(--ink-2)}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.opt{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.opt b{font:700 15px var(--font-display)}
+.opt p{font-size:14px;color:var(--ink-2)}
+.opt .tag{align-self:flex-start;font:600 11px var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ok)}
+.road{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.road li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.road li:last-child{border-bottom:0}
+.road b{font-weight:600}
+.road span.s{font-size:14px;color:var(--ink-2)}
+.planner{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.bullets{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--ink-2);font-size:14.5px}
+.bullets b{color:var(--ink);font-weight:600}
+
+/* client view and lightbox are always dark, like a viewing room */
+.client{--bg:#0B0C0D;--surface:#141516;--surface-2:#1E2022;--ink:#F2F3F3;--ink-2:#9DA1A5;--line:#2B2D2F;--accent:#7E97FF;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;color-scheme:dark}
+.cl-banner{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding:10px var(--gutter);background:#F2F3F3;color:#0D0E0F;font-size:14px}
+.cl-banner .btn{background:#0D0E0F;color:#F2F3F3;border-color:#0D0E0F}
+.cl-top{padding:28px var(--gutter) 0;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.cl-top .brand{width:150px;color:#F2F3F3}
+.cl-hero{padding:48px var(--gutter) 28px;display:flex;flex-direction:column;gap:12px;max-width:1500px;width:100%;margin-inline:auto}
+.cl-hero h1{font:800 clamp(30px,6vw,64px)/1 var(--font-display);text-transform:uppercase;letter-spacing:-.015em}
+.cl-hero p{color:var(--ink-2)}
+.masonry{columns:4 260px;column-gap:14px;padding:0 var(--gutter) 40px;max-width:1500px;width:100%;margin-inline:auto}
+.masonry button{display:block;width:100%;margin:0 0 14px;padding:0;border:0;background:var(--surface-2);break-inside:avoid;border-radius:2px;overflow:hidden}
+.masonry img{display:block;width:100%;height:auto}
+.cl-foot{margin-top:auto;padding:22px var(--gutter);border-top:1px solid var(--line);color:var(--ink-2);font-size:13.5px}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(6,7,8,.96);color:#F2F3F3;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.lb-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;font:400 13px var(--font-mono)}
+.lb-bar .grp{display:flex;gap:8px;align-items:center}
+.lb-bar .btn{background:transparent;color:#F2F3F3;border-color:#3A3D40}
+.lb-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 56px 16px;position:relative}
+.lb-stage img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid #3A3D40;background:rgba(20,21,22,.8);color:#F2F3F3;font-size:20px;line-height:1}
+.lb-nav.prev-b{left:8px}.lb-nav.next-b{right:8px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-size:14px;font-weight:600;transition:all .2s;z-index:80;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:1060px){.up-grid{grid-template-columns:minmax(0,1fr)}.cols2,.opts{grid-template-columns:minmax(0,1fr)}.planner{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:880px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px var(--gutter);border-right:0;border-bottom:1px solid var(--line)}
+  .brand{width:112px}
+  .wm{gap:4px}.wm b{font-size:19px}.wm span{font-size:9px}
+  .nav{flex-direction:row;flex:1 1 auto;overflow-x:auto}
+  .nav button{padding:8px 11px;white-space:nowrap}
+  .linkdock{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;border-radius:0;border-width:1px 0 0;padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface)}
+  .linkdock .dk-title,.linkdock .dk-open,.linkdock .dk-note{display:none}
+  main{padding-bottom:130px}
+  .road li{grid-template-columns:minmax(0,1fr);gap:2px}
+  .lb-stage{padding:0 8px 12px}
+  .lb-nav{top:auto;bottom:12px;transform:none}
+}
+@media (max-width:520px){.panel{padding:16px}.planner{grid-template-columns:minmax(0,1fr)}.sheet{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell" id="shell">
+  <aside class="side">
+    <div class="wm" aria-label="OneLogoSpot, a BYINFORGH product"><b>OneLogoSpot</b><span>a BYINFORGH product</span></div>
+    <nav class="nav" aria-label="Main">
+      <button data-go="upload" aria-current="page">Upload</button>
+      <button data-go="gallery">Gallery <span class="count" id="navCount"></span></button>
+      <button data-go="setup">Storage and setup</button>
+    </nav>
+    <div class="linkdock" id="linkdock"></div>
+  </aside>
+
+  <main>
+    <!-- UPLOAD -->
+    <section class="page" id="p-upload">
+      <header class="ph">
+        <p class="eyebrow">Upload</p>
+        <h1>New photo batch</h1>
+        <p class="lede">Drop up to 20 photos. Your logo goes on every picture and a link for your client is created for the batch.</p>
+      </header>
+      <div class="up-grid">
+        <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+          <div class="panel">
+            <div class="field">
+              <label for="sessionName">Client or shoot name</label>
+              <input id="sessionName" type="text" maxlength="60" placeholder="Mensah wedding, 3 Oct" autocomplete="off">
+            </div>
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose photos to upload">
+              <div class="ico" id="dropIco"></div>
+              <b>Drop photos here</b>
+              <span>JPG, PNG or WebP. Up to 20 photos, 30 MB each.</span>
+              <button class="btn primary" type="button" id="pick">Choose photos</button>
+            </div>
+            <input id="file" type="file" multiple accept="image/jpeg,image/png,image/webp" hidden>
+            <div class="counter"><div class="ticks" id="ticks" aria-hidden="true"></div><span class="mono" id="countTxt">0 / 20 photos</span></div>
+            <div class="switchrow">
+              <div class="t"><b id="lblAuto">Add the logo as soon as photos are chosen</b><span>Turn off to review the batch and the logo placement first.</span></div>
+              <button class="switch" id="swAuto" role="switch" aria-checked="true" aria-labelledby="lblAuto"></button>
+            </div>
+            <div class="actions" id="upActions"></div>
+            <p class="notice" id="notice" hidden></p>
+            <ul class="queue" id="queue"></ul>
+          </div>
+          <div class="panel done-card" id="doneCard" hidden></div>
+        </div>
+        <aside class="panel" aria-label="Logo placement">
+          <h2>Logo placement</h2>
+          <canvas class="prev" id="prev" width="1200" height="800" aria-label="Preview of the logo on a photo"></canvas>
+          <div class="prevcap"><span id="prevName">Sample frame</span><span class="mono" id="prevDims"></span></div>
+          <div class="ctl">
+            <span class="lbl">Position</span>
+            <div class="posrow">
+              <div class="posgrid" id="posgrid" role="group" aria-label="Logo position"></div>
+              <button class="tilebtn" id="tileBtn" data-pos="tile" aria-pressed="false">Tiled</button>
+            </div>
+          </div>
+          <div class="ctl"><span class="lbl">Logo</span>
+            <div class="seg" id="segStyle" role="group" aria-label="Logo style"><button data-style="full" aria-pressed="true">Full logo</button><button data-style="mark" aria-pressed="false">Camera only</button></div>
+          </div>
+          <div class="ctl"><span class="lbl">Colour</span>
+            <div class="seg" id="segColor" role="group" aria-label="Logo colour"><button data-color="auto" aria-pressed="true">Auto</button><button data-color="#ffffff" aria-pressed="false">White</button><button data-color="#000000" aria-pressed="false">Black</button></div>
+          </div>
+          <div class="rng"><label for="rSize">Size</label><output id="oSize"></output><input id="rSize" type="range" min="8" max="60" step="1"></div>
+          <div class="rng"><label for="rOp">Opacity</label><output id="oOp"></output><input id="rOp" type="range" min="20" max="100" step="1"></div>
+          <div class="rng"><label for="rMg">Edge margin</label><output id="oMg"></output><input id="rMg" type="range" min="1" max="10" step="1"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="page" id="p-gallery" hidden>
+      <header class="ph">
+        <p class="eyebrow">Gallery</p>
+        <h1>Photos with your logo</h1>
+        <p class="lede">Every batch becomes a shoot with its own client link. Open a photo to see it full size.</p>
+      </header>
+      <div class="panel">
+        <div class="switchrow">
+          <div class="t"><b id="lblPub">Put new uploads in the gallery automatically</b><span>When this is off, new batches wait as drafts and the client link stays closed until you publish.</span></div>
+          <button class="switch" id="swPub" role="switch" aria-checked="true" aria-labelledby="lblPub"></button>
+        </div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div id="gal" style="display:flex;flex-direction:column;gap:24px"></div>
+    </section>
+
+    <!-- SETUP -->
+    <section class="page" id="p-setup" hidden>
+      <header class="ph">
+        <p class="eyebrow">Storage and setup</p>
+        <h1>Where the photos live</h1>
+        <p class="lede">This page is a working sample. It keeps photos inside your browser so you can try the whole flow. This page explains where they go on a live website.</p>
+      </header>
+
+      <div class="cols2">
+        <div class="panel">
+          <h2>Right now, in this sample</h2>
+          <div class="stats" id="stats"></div>
+          <div class="meter" aria-hidden="true"><i id="quotaBar" style="width:0"></i></div>
+          <p class="sub" id="quotaTxt"></p>
+          <p class="sub" id="persistTxt"></p>
+        </div>
+        <div class="panel">
+          <h2>What the sample cannot do</h2>
+          <ul class="bullets">
+            <li><b>Client links only open on this device.</b> The photos are stored in this browser, so a client on another phone sees nothing. A live site fixes this.</li>
+            <li><b>Logos are added in the browser.</b> A live site adds them on the server, so the original photo never reaches the client.</li>
+            <li><b>No login.</b> A live site has one owner login for you. Clients need no account.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>How it works on a live website</h2>
+        <p class="sub">You upload once. The server adds the logo, saves three copies, and each client link points to the logo copy only.</p>
+        <div class="diagram">
+          <svg viewBox="0 0 765 320" role="img" aria-label="Upload goes to the server, the server adds the logo and saves files, clients open the link through a CDN">
+            <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="dg-h" d="M0 0L10 5L0 10z"/></marker></defs>
+            <rect class="dg-box" x="0" y="20" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="75" y="55" text-anchor="middle">You</text>
+            <text class="dg-s" x="75" y="75" text-anchor="middle">Upload page</text>
+            <text class="dg-s" x="75" y="91" text-anchor="middle">20 photos at a time</text>
+            <rect class="dg-box" x="205" y="20" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="280" y="55" text-anchor="middle">Server</text>
+            <text class="dg-s" x="280" y="75" text-anchor="middle">checks your login</text>
+            <text class="dg-s" x="280" y="91" text-anchor="middle">makes the link</text>
+            <rect class="dg-box key" x="410" y="20" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="485" y="55" text-anchor="middle">Logo step</text>
+            <text class="dg-s" x="485" y="75" text-anchor="middle">places your logo</text>
+            <text class="dg-s" x="485" y="91" text-anchor="middle">makes a small copy</text>
+            <rect class="dg-box" x="615" y="8" width="150" height="108" rx="4"/>
+            <text class="dg-t" x="690" y="38" text-anchor="middle">File storage</text>
+            <text class="dg-s" x="690" y="60" text-anchor="middle">originals (private)</text>
+            <text class="dg-s" x="690" y="76" text-anchor="middle">logo copies (public)</text>
+            <text class="dg-s" x="690" y="92" text-anchor="middle">small previews</text>
+            <rect class="dg-box" x="205" y="210" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="280" y="245" text-anchor="middle">Database</text>
+            <text class="dg-s" x="280" y="265" text-anchor="middle">shoots, photos</text>
+            <text class="dg-s" x="280" y="281" text-anchor="middle">link codes</text>
+            <rect class="dg-box" x="410" y="210" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="485" y="245" text-anchor="middle">Your client</text>
+            <text class="dg-s" x="485" y="265" text-anchor="middle">opens the link</text>
+            <text class="dg-s" x="485" y="281" text-anchor="middle">sees logo copies</text>
+            <rect class="dg-box" x="615" y="210" width="150" height="84" rx="4"/>
+            <text class="dg-t" x="690" y="245" text-anchor="middle">Fast delivery</text>
+            <text class="dg-s" x="690" y="265" text-anchor="middle">CDN serves the</text>
+            <text class="dg-s" x="690" y="281" text-anchor="middle">logo copies</text>
+            <path class="dg-a" d="M150 62H203" marker-end="url(#ah)"/>
+            <path class="dg-a" d="M355 62H408" marker-end="url(#ah)"/>
+            <path class="dg-a" d="M560 62H613" marker-end="url(#ah)"/>
+            <path class="dg-a" d="M280 104V208" marker-end="url(#ah)"/>
+            <path class="dg-a" d="M690 116V208" marker-end="url(#ah)"/>
+            <path class="dg-a" d="M613 252H562" marker-end="url(#ah)"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Where it can run</h2>
+        <div class="opts">
+          <div class="opt"><span class="tag">Recommended</span><b>One small server plus file storage</b><p>A Node server on a low-cost cloud machine, the sharp image library for the logo step, and an S3-compatible bucket such as Cloudflare R2 or Amazon S3 for the files. Simple to understand and easy to move later.</p></div>
+          <div class="opt"><b>Managed platform</b><p>Vercel or Netlify for the site, Supabase or S3 for files and database, and a serverless function for the logo step. Less to look after, more moving parts to connect.</p></div>
+          <div class="opt"><b>Everything on one machine</b><p>Photos on the server's own disk. Cheapest to start. You must schedule backups yourself, and the disk fills up as shoots add up.</p></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Recommended build</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>Part</th><th>Choice</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Website</td><td>This design, built as a small web app</td><td>One brand file holds the logo, colours and fonts, so it stays exclusive to the studio.</td></tr>
+            <tr><td>Logo step</td><td>sharp on the server</td><td>Fast and consistent. The same placement settings you choose here are saved and reused.</td></tr>
+            <tr><td>File storage</td><td>Bucket with three folders</td><td>Originals stay private. Logo copies and previews are the only files a client link can reach.</td></tr>
+            <tr><td>Database</td><td>Postgres or SQLite</td><td>Holds shoots, photos, link codes, and whether each shoot is live.</td></tr>
+            <tr><td>Client links</td><td>Random codes, 10 characters or more</td><td>Hard to guess. Add an expiry date or a password per shoot later.</td></tr>
+            <tr><td>Your login</td><td>One owner account</td><td>Only you can upload or publish. There is no public sign-up page.</td></tr>
+            <tr><td>Search engines</td><td>Block gallery pages</td><td>Client galleries stay private to whoever holds the link.</td></tr>
+            <tr><td>Backups</td><td>Nightly copy of the database and originals</td><td>Protects the work if a service fails or something is deleted by mistake.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="panel">
+        <h2>How much storage will you need?</h2>
+        <p class="sub">Adjust the numbers to match the studio. This assumes you keep every original.</p>
+        <div class="planner">
+          <div class="field"><label for="pShoots">Shoots per month</label><input id="pShoots" type="number" min="1" max="200" value="12"></div>
+          <div class="field"><label for="pPhotos">Photos per shoot</label><input id="pPhotos" type="number" min="1" max="3000" value="300"></div>
+          <div class="field"><label for="pOrig">Original size (MB)</label><input id="pOrig" type="number" min="0.5" max="80" step="0.5" value="8"></div>
+          <div class="field"><label for="pWeb">Logo copy size (MB)</label><input id="pWeb" type="number" min="0.2" max="10" step="0.1" value="1.5"></div>
+        </div>
+        <div class="out" id="plannerOut"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Pages</h2>
+        <ul class="road">
+          <li><b>Upload</b><span class="s">Built. Up to 20 photos, logo placed automatically, client link created.</span></li>
+          <li><b>Gallery</b><span class="s">Built. Shoots with logo photos, an automatic publish switch, and a client preview.</span></li>
+          <li><b>Clients</b><span class="s">Next. A list of clients with their shoots, notes and contact details.</span></li>
+          <li><b>Branding</b><span class="s">Next. Replace the logo file, and save placement presets such as "wedding" or "portrait".</span></li>
+          <li><b>Delivery</b><span class="s">Next. Let a client download the full-resolution files without the logo, after payment.</span></li>
+          <li><b>Link activity</b><span class="s">Later. See when a client opened the link and which photos they viewed.</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- CLIENT VIEW -->
+<div class="client" id="client" hidden></div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <div class="lb-bar"><span id="lbCap"></span><div class="grp"><button class="btn sm" id="lbDel" hidden>Remove photo</button><button class="btn sm" id="lbClose">Close</button></div></div>
+  <div class="lb-stage"><button class="lb-nav prev-b" id="lbPrev" aria-label="Previous photo">&#8592;</button><img id="lbImg" alt=""><button class="lb-nav next-b" id="lbNext" aria-label="Next photo">&#8594;</button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const MAX_BATCH=20, MAX_FILE_MB=30;
+const DEFAULTS={pos:'br',style:'full',color:'auto',size:26,opacity:90,margin:3,autoApply:true,autoPublish:true};
+let settings={...DEFAULTS};
+try{const s=JSON.parse(localStorage.getItem('ss-settings')||'null');if(s)settings={...DEFAULTS,...s};}catch(e){}
+const saveSettings=()=>{try{localStorage.setItem('ss-settings',JSON.stringify(settings));}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const CODE_CHARS='abcdefghjkmnpqrstuvwxyz23456789';
+const newCode=()=>{const a=new Uint8Array(10);crypto.getRandomValues(a);return [...a].map(n=>CODE_CHARS[n%CODE_CHARS.length]).join('');};
+const fmtBytes=b=>b>=1073741824?(b/1073741824).toFixed(2)+' GB':b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const fmtDate=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const frameLabel=n=>'SS-'+String(n).padStart(4,'0');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---------- logo geometry (redrawn from the studio logo) ---------- */
+const LOGO_W=580, LOGO_H=310, MARK_W=180;
+function markInner(u,c){
+  return `<defs><clipPath id="a${u}"><path clip-rule="evenodd" d="M-50 -50H250V360H-50Z M72 154a98 98 0 1 0 196 0a98 98 0 1 0 -196 0Z"/></clipPath><clipPath id="b${u}"><rect width="165" height="310"/></clipPath></defs>`+
+  `<g clip-path="url(#a${u})"><rect x="7" y="66" width="170" height="178" rx="24" fill="${c}"/><rect x="47" y="46" width="58" height="13" rx="6.5" fill="${c}"/></g>`+
+  `<circle cx="170" cy="154" r="72" fill="none" stroke="${c}" stroke-width="14" clip-path="url(#b${u})"/>`+
+  `<rect x="165" y="4" width="12" height="302" fill="${c}"/>`;
+}
+let svgCount=0;
+function lockupSvg(){
+  const u='L'+(++svgCount);
+  return `<svg viewBox="0 0 ${LOGO_W} ${LOGO_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Snapshot Studio">${markInner(u,'currentColor')}`+
+  `<text x="203" y="149" font-family="Montserrat,sans-serif" font-weight="800" font-size="71" textLength="372" lengthAdjust="spacing" fill="currentColor">SNAPSHOT</text>`+
+  `<text x="203" y="209" font-family="Montserrat,sans-serif" font-weight="400" font-size="55" textLength="372" lengthAdjust="spacing" fill="currentColor">STUDIO</text></svg>`;
+}
+function markSvg(){const u='M'+(++svgCount);return `<svg viewBox="0 0 ${MARK_W} 310" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${markInner(u,'currentColor')}</svg>`;}
+const markImgs={};
+function loadMarks(){
+  return Promise.all(['#ffffff','#000000'].map(c=>new Promise(res=>{
+    const i=new Image();i.onload=()=>res();i.onerror=()=>res();
+    i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${MARK_W}" height="310" viewBox="0 0 ${MARK_W} 310">${markInner('x',c)}</svg>`);
+    markImgs[c]=i;
+  })));
+}
+async function fontsReady(){
+  try{await Promise.race([Promise.all([document.fonts.load('800 71px Montserrat'),document.fonts.load('400 55px Montserrat')]),sleep(3500)]);}catch(e){}
+}
+function drawSpaced(g,text,font,x,y,target){
+  g.font=font;const chars=[...text];const ws=chars.map(ch=>g.measureText(ch).width);
+  const total=ws.reduce((a,b)=>a+b,0);const gap=(target-total)/(chars.length-1);let cx=x;
+  chars.forEach((ch,i)=>{g.fillText(ch,cx,y);cx+=ws[i]+gap;});
+}
+function buildLogo(style,color,lw){
+  const nativeW=style==='mark'?MARK_W:LOGO_W;const sc=lw/nativeW;const lh=Math.max(1,Math.round(LOGO_H*sc));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(lw));c.height=lh;
+  const g=c.getContext('2d');g.scale(sc,sc);
+  try{g.drawImage(markImgs[color],0,0,MARK_W,310);}catch(e){}
+  if(style==='full'){
+    g.fillStyle=color;g.textBaseline='alphabetic';
+    drawSpaced(g,'SNAPSHOT','800 71px Montserrat, sans-serif',203,149,372);
+    drawSpaced(g,'STUDIO','400 55px Montserrat, sans-serif',203,209,372);
+  }
+  return c;
+}
+const lumCv=document.createElement('canvas');lumCv.width=lumCv.height=16;
+function regionLum(src,x,y,w,h){
+  const W=src.width,H=src.height;x=Math.max(0,Math.min(W-1,Math.round(x)));y=Math.max(0,Math.min(H-1,Math.round(y)));
+  w=Math.max(1,Math.min(W-x,Math.round(w)));h=Math.max(1,Math.min(H-y,Math.round(h)));
+  const g=lumCv.getContext('2d',{willReadFrequently:true});g.clearRect(0,0,16,16);g.drawImage(src,x,y,w,h,0,0,16,16);
+  const d=g.getImageData(0,0,16,16).data;let t=0;for(let i=0;i<d.length;i+=4)t+=0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2];
+  return t/(256*255);
+}
+function drawWatermark(ctx,W,H,s){
+  const cv=ctx.canvas,tile=s.pos==='tile';
+  const mg=Math.round(W*s.margin/100);
+  let lw=Math.round(W*s.size/100);
+  if(s.style==='mark')lw=Math.round(lw*0.42);
+  if(tile)lw=Math.round(lw*0.55);
+  let lh=Math.round(LOGO_H*lw/(s.style==='mark'?MARK_W:LOGO_W));
+  if(lh>H*0.6){lw=Math.round(lw*(H*0.6/lh));lh=Math.round(H*0.6);}
+  let x=0,y=0;
+  if(!tile){
+    const cols={l:mg,c:(W-lw)/2,r:W-lw-mg},rows={t:mg,m:(H-lh)/2,b:H-lh-mg};
+    x=cols[s.pos[1]];y=rows[s.pos[0]];
+  }
+  let color=s.color;
+  if(color==='auto')color=(tile?regionLum(cv,0,0,W,H):regionLum(cv,x,y,lw,lh))<0.55?'#ffffff':'#000000';
+  const logo=buildLogo(s.style,color,lw);
+  ctx.save();
+  ctx.shadowColor=color==='#ffffff'?'rgba(0,0,0,.45)':'rgba(255,255,255,.4)';
+  ctx.shadowBlur=Math.max(2,lw*0.03);
+  if(tile){
+    ctx.globalAlpha=s.opacity/100*0.6;
+    ctx.translate(W/2,H/2);ctx.rotate(-Math.PI/7);
+    const sx=lw*1.9,sy=lh*2.6,span=Math.hypot(W,H)/2;let r=0;
+    for(let yy=-span;yy<span;yy+=sy,r++)for(let xx=-span+(r%2)*sx/2;xx<span;xx+=sx)ctx.drawImage(logo,xx,yy);
+  }else{
+    ctx.globalAlpha=s.opacity/100;ctx.drawImage(logo,Math.round(x),Math.round(y));
+  }
+  ctx.restore();
+}
+
+/* ---------- image pipeline ---------- */
+async function loadBitmap(file){
+  if(window.createImageBitmap){try{return await createImageBitmap(file,{imageOrientation:'from-image'});}catch(e){}}
+  return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const i=new Image();i.onload=()=>{URL.revokeObjectURL(u);res(i);};i.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('unreadable'));};i.src=u;});
+}
+const dims=b=>[b.width||b.naturalWidth,b.height||b.naturalHeight];
+const toBlob=(c,t,q)=>new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('encode failed')),t,q));
+async function makeVersions(src,s){
+  const [w0,h0]=dims(src);const k=Math.min(1,2400/Math.max(w0,h0));
+  const W=Math.round(w0*k),H=Math.round(h0*k);
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,W,H);
+  drawWatermark(ctx,W,H,s);
+  const blob=await toBlob(c,'image/jpeg',0.9);
+  const tk=480/Math.max(W,H);const t=document.createElement('canvas');t.width=Math.round(W*tk);t.height=Math.round(H*tk);
+  t.getContext('2d').drawImage(c,0,0,t.width,t.height);
+  const thumb=await toBlob(t,'image/jpeg',0.8);
+  return {blob,thumb,w:W,h:H};
+}
+
+/* procedural sample frames so the sample works before any upload */
+function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function scene(seed,w,h){
+  const r=rng(seed),c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  const hue=Math.floor(r()*360);
+  const sky=g.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,`hsl(${hue},40%,16%)`);sky.addColorStop(.55,`hsl(${(hue+28)%360},62%,50%)`);sky.addColorStop(.8,`hsl(${(hue+48)%360},78%,74%)`);
+  g.fillStyle=sky;g.fillRect(0,0,w,h);
+  const sx=w*(.2+.6*r()),sy=h*(.46+.12*r()),sr=Math.min(w,h)*.5;
+  const sun=g.createRadialGradient(sx,sy,0,sx,sy,sr);
+  sun.addColorStop(0,'rgba(255,248,220,.95)');sun.addColorStop(.12,'rgba(255,236,190,.55)');sun.addColorStop(1,'rgba(255,220,160,0)');
+  g.fillStyle=sun;g.fillRect(0,0,w,h);
+  for(let l=0;l<4;l++){
+    const base=h*(.58+l*.1),amp=h*(.05+.02*r()),f1=(1.2+r()*1.6)/w*Math.PI*2,f2=(4+r()*4)/w*Math.PI*2,p1=r()*6,p2=r()*6;
+    g.beginPath();g.moveTo(0,h);
+    for(let x=0;x<=w;x+=8)g.lineTo(x,base+Math.sin(x*f1+p1)*amp+Math.sin(x*f2+p2)*amp*.35);
+    g.lineTo(w,h);g.closePath();
+    g.fillStyle=`hsl(${(hue+210)%360},${26-l*3}%,${30-l*7}%)`;g.fill();
+  }
+  g.fillStyle='rgba(255,255,255,.05)';
+  for(let i=0;i<w*h/260;i++)g.fillRect(r()*w,r()*h,1.4,1.4);
+  return c;
+}
+
+/* ---------- storage: IndexedDB with memory fallback ---------- */
+let db=null,persistent=false;const mem={sessions:new Map(),photos:new Map()};
+async function openDb(){
+  try{
+    db=await new Promise((res,rej)=>{
+      const r=indexedDB.open('snapshot-studio',1);
+      r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('sessions',{keyPath:'id'});d.createObjectStore('photos',{keyPath:'id'});};
+      r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('blocked'));
+    });persistent=true;
+  }catch(e){db=null;persistent=false;}
+}
+function tx(store,mode,fn){return new Promise((res,rej)=>{const t=db.transaction(store,mode);const r=fn(t.objectStore(store));t.oncomplete=()=>res(r&&r.result);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error);});}
+const S={
+  all:n=>db?tx(n,'readonly',s=>s.getAll()):Promise.resolve([...mem[n].values()]),
+  put:(n,o)=>db?tx(n,'readwrite',s=>s.put(o)):(mem[n].set(o.id,o),Promise.resolve()),
+  del:(n,id)=>db?tx(n,'readwrite',s=>s.delete(id)):(mem[n].delete(id),Promise.resolve())
+};
+
+/* ---------- state ---------- */
+const state={sessions:[],photos:[],active:null,filter:'all',page:'upload',previewing:false};
+const base=()=>{try{return location.href.split('#')[0];}catch(e){return '';}};
+const linkFor=s=>base()+'#c-'+s.code;
+const sessPhotos=id=>state.photos.filter(p=>p.sessionId===id).sort((a,b)=>a.n-b.n);
+const urlFor=(p,k)=>p['_'+k]||(p['_'+k]=URL.createObjectURL(k==='t'?p.thumb:p.blob));
+const activeSession=()=>state.sessions.find(s=>s.id===state.active)||[...state.sessions].sort((a,b)=>b.createdAt-a.createdAt)[0]||null;
+const defaultTitle=()=>'Shoot, '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600);}
+async function copyText(text,input){
+  try{await navigator.clipboard.writeText(text);toast('Link copied');}
+  catch(e){if(input){input.focus();input.select();}toast('Press Ctrl+C (or Cmd+C) to copy the link');}
+}
+
+/* ---------- navigation ---------- */
+function go(page){
+  state.page=page;
+  ['upload','gallery','setup'].forEach(p=>{$('#p-'+p).hidden=p!==page;});
+  $$('.nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===page?'page':'false'));
+  if(page==='gallery')renderGallery();
+  if(page==='setup')renderSetup();
+  window.scrollTo(0,0);
+}
+$$('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+
+/* ---------- dock (client link, bottom left) ---------- */
+function renderDock(){
+  const s=activeSession(),el=$('#linkdock');
+  if(!s){el.innerHTML=`<span class="eyebrow">Client link</span><p class="dk-note">Upload a batch and its link appears here.</p>`;return;}
+  const n=sessPhotos(s.id).length,link=linkFor(s);
+  el.innerHTML=`<div class="dk-head"><span class="eyebrow">Client link</span><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span></div>`+
+  `<div class="dk-title">${esc(s.title)} <span class="mono" style="font-weight:400;color:var(--ink-2)">${n}</span></div>`+
+  `<div class="dk-row"><input id="dkInput" readonly value="${esc(link)}" aria-label="Client link"><button class="btn primary sm" data-act="copy-dock">Copy</button></div>`+
+  (s.published?`<a class="dk-open" href="${esc(link)}" target="_blank" rel="noopener">Open as your client</a>`:`<p class="dk-note">Publish this shoot in the gallery to open the link.</p>`);
+}
+$('#linkdock').addEventListener('click',e=>{
+  if(e.target.closest('[data-act=copy-dock]')){const i=$('#dkInput');copyText(i.value,i);}
+});
+
+/* ---------- upload page ---------- */
+const batch={items:[],phase:'idle',sessionId:null};
+function buildPosGrid(){
+  const g=$('#posgrid');g.innerHTML='';
+  ['tl','tc','tr','ml','mc','mr','bl','bc','br'].forEach(p=>{
+    const b=document.createElement('button');b.dataset.pos=p;b.setAttribute('aria-pressed','false');b.setAttribute('aria-label',({t:'Top',m:'Middle',b:'Bottom'})[p[0]]+' '+({l:'left',c:'centre',r:'right'})[p[1]]);g.appendChild(b);
+  });
+}
+function syncControls(){
+  $$('[data-pos]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pos===settings.pos)));
+  $$('#segStyle button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.style===settings.style)));
+  $$('#segColor button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===settings.color)));
+  $('#rSize').value=settings.size;$('#rOp').value=settings.opacity;$('#rMg').value=settings.margin;
+  $('#oSize').textContent=settings.size+'%';$('#oOp').textContent=settings.opacity+'%';$('#oMg').textContent=settings.margin+'%';
+  $('#swAuto').setAttribute('aria-checked',String(settings.autoApply));
+  $('#swPub').setAttribute('aria-checked',String(settings.autoPublish));
+}
+let prevBase=null,prevLabel='Sample frame',raf=0,assetsReady=false;
+function redrawPreview(){
+  if(!assetsReady||!prevBase)return;
+  const c=$('#prev'),[w,h]=dims(prevBase);c.width=w;c.height=h;
+  const g=c.getContext('2d');g.drawImage(prevBase,0,0);drawWatermark(g,w,h,settings);
+  $('#prevName').textContent=prevLabel;$('#prevDims').textContent='';
+}
+const schedulePreview=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(redrawPreview);};
+async function setPreviewFromFile(file){
+  try{
+    const bm=await loadBitmap(file);const [w0,h0]=dims(bm);const k=Math.min(1,1100/Math.max(w0,h0));
+    const c=document.createElement('canvas');c.width=Math.round(w0*k);c.height=Math.round(h0*k);c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+    prevBase=c;prevLabel=file.name;redrawPreview();
+  }catch(e){}
+}
+function onSetting(patch){Object.assign(settings,patch);saveSettings();syncControls();schedulePreview();}
+$('#posgrid').addEventListener('click',e=>{const b=e.target.closest('[data-pos]');if(b)onSetting({pos:b.dataset.pos});});
+$('#tileBtn').addEventListener('click',()=>onSetting({pos:'tile'}));
+$('#segStyle').addEventListener('click',e=>{const b=e.target.closest('[data-style]');if(b)onSetting({style:b.dataset.style});});
+$('#segColor').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(b)onSetting({color:b.dataset.color});});
+$('#rSize').addEventListener('input',e=>onSetting({size:+e.target.value}));
+$('#rOp').addEventListener('input',e=>onSetting({opacity:+e.target.value}));
+$('#rMg').addEventListener('input',e=>onSetting({margin:+e.target.value}));
+$('#swAuto').addEventListener('click',()=>{onSetting({autoApply:!settings.autoApply});renderBatch();});
+$('#swPub').addEventListener('click',()=>onSetting({autoPublish:!settings.autoPublish}));
+
+function resetBatch(){batch.items.forEach(i=>URL.revokeObjectURL(i.url));batch.items=[];batch.phase='idle';batch.sessionId=null;$('#notice').hidden=true;$('#doneCard').hidden=true;renderBatch();}
+function addFiles(list){
+  if(batch.phase==='processing'){toast('Wait for the current batch to finish');return;}
+  if(batch.phase==='done')resetBatch();
+  let bad=0,over=0;
+  for(const f of [...list]){
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)||f.size>MAX_FILE_MB*1048576){bad++;continue;}
+    if(batch.items.length>=MAX_BATCH){over++;continue;}
+    batch.items.push({id:uid(),file:f,status:'queued',url:URL.createObjectURL(f)});
+  }
+  const msgs=[];
+  if(over)msgs.push(`${over} photo${over>1?'s were':' was'} left out. Each batch holds ${MAX_BATCH} photos.`);
+  if(bad)msgs.push(`${bad} file${bad>1?'s were':' was'} skipped. Use JPG, PNG or WebP under ${MAX_FILE_MB} MB.`);
+  const n=$('#notice');n.hidden=!msgs.length;n.textContent=msgs.join(' ');
+  if(!batch.items.length){renderBatch();return;}
+  batch.phase='ready';renderBatch();setPreviewFromFile(batch.items[0].file);
+  if(settings.autoApply)run();
+}
+async function run(){
+  if(batch.phase==='processing')return;
+  const queued=batch.items.filter(i=>i.status==='queued');if(!queued.length)return;
+  batch.phase='processing';renderBatch();
+  const title=($('#sessionName').value||'').trim()||defaultTitle();
+  const session={id:uid(),code:newCode(),title,createdAt:Date.now(),published:settings.autoPublish,example:false};
+  let idx=0,ok=0;
+  for(const it of queued){
+    if(!batch.items.includes(it))continue;
+    it.status='processing';renderBatch();
+    try{
+      const src=await loadBitmap(it.file);const v=await makeVersions(src,settings);if(src.close)src.close();
+      idx++;
+      const photo={id:uid(),sessionId:session.id,name:it.file.name,w:v.w,h:v.h,size:v.blob.size,blob:v.blob,thumb:v.thumb,createdAt:Date.now(),n:idx};
+      if(!state.sessions.includes(session)){await S.put('sessions',session);state.sessions.push(session);}
+      await S.put('photos',photo);state.photos.push(photo);ok++;it.status='done';it.photoId=photo.id;
+    }catch(e){it.status='failed';}
+    renderBatch();
+  }
+  batch.phase='done';
+  if(ok){state.active=session.id;batch.sessionId=session.id;toast(ok+' photo'+(ok>1?'s':'')+' ready');}
+  renderBatch();renderDock();renderNavCount();
+}
+function renderBatch(){
+  const n=batch.items.length;
+  $('#ticks').innerHTML=Array.from({length:MAX_BATCH},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  $('#countTxt').textContent=`${n} / ${MAX_BATCH} photos`;
+  $('#drop').classList.toggle('busy',batch.phase==='processing');
+  $('#queue').innerHTML=batch.items.map(it=>`<li class="q ${it.status}"><div class="im"><img src="${it.url}" alt="" loading="lazy" decoding="async">${it.status==='processing'?'':`<button class="x" data-act="rm-item" data-id="${it.id}" aria-label="Remove ${esc(it.file.name)}" title="Remove photo">&times;</button>`}<div class="bar"><i></i></div></div><div class="row"><span class="nm" title="${esc(it.file.name)}">${esc(it.file.name)}</span></div><div class="row"><span class="pill ${it.status}">${({queued:'Waiting',processing:'Adding logo',done:'Done',failed:'Could not read'})[it.status]}</span><span class="mono nm">${fmtBytes(it.file.size)}</span></div></li>`).join('');
+  const a=$('#upActions');
+  if(batch.phase==='processing'){
+    const d=batch.items.filter(i=>i.status==='done'||i.status==='failed').length;
+    a.innerHTML=`<span class="sub">Adding your logo, ${d} of ${n} done.</span>`;
+  }else if(batch.phase==='done'){
+    a.innerHTML=`<button class="btn" data-act="again">Upload another batch</button>`;
+  }else if(n&&!settings.autoApply){
+    a.innerHTML=`<button class="btn primary" data-act="run">Add logo to ${n} photo${n>1?'s':''} and create link</button><button class="btn" data-act="clear">Clear</button>`;
+  }else a.innerHTML='';
+  renderDone();
+}
+function renderDone(){
+  const card=$('#doneCard'),s=state.sessions.find(x=>x.id===batch.sessionId);
+  if(batch.phase!=='done'||!s){card.hidden=true;return;}
+  const n=sessPhotos(s.id).length,link=linkFor(s);
+  card.hidden=false;
+  card.innerHTML=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2>${n} photo${n>1?'s':''} ready</h2><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span></div>`+
+  `<p class="sub">${esc(s.title)}. ${s.published?'Send this link to your client.':'This shoot is a draft. Publish it in the gallery to open the link.'}</p>`+
+  `<div class="linkrow"><input id="doneInput" readonly value="${esc(link)}" aria-label="Client link"><button class="btn primary" data-act="copy-done">Copy link</button></div>`+
+  `<div class="actions"><button class="btn" data-act="to-gallery">Open gallery</button>${s.published?'<button class="btn" data-act="preview-done">Preview as client</button>':''}</div>`;
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act;
+  if(act==='run')run();
+  else if(act==='clear')resetBatch();
+  else if(act==='rm-item')removeItem(a.dataset.id);
+  else if(act==='again'){resetBatch();$('#sessionName').value='';}
+  else if(act==='copy-done'){const i=$('#doneInput');copyText(i.value,i);}
+  else if(act==='to-gallery'){state.filter=batch.sessionId||'all';go('gallery');}
+  else if(act==='preview-done'){const s=state.sessions.find(x=>x.id===batch.sessionId);if(s)openClient(s.code,true);}
+});
+async function removeItem(id){
+  const it=batch.items.find(x=>x.id===id);if(!it||it.status==='processing')return;
+  batch.items=batch.items.filter(x=>x!==it);URL.revokeObjectURL(it.url);
+  if(it.photoId){
+    const p=state.photos.find(x=>x.id===it.photoId);
+    if(p){
+      await removePhotoData(p);
+      if(!state.photos.some(x=>x.sessionId===p.sessionId)){
+        const s=state.sessions.find(x=>x.id===p.sessionId);if(s)await removeSession(s);
+        if(batch.sessionId===p.sessionId)batch.sessionId=null;
+      }
+    }
+  }
+  if(!batch.items.length&&batch.phase!=='processing'){batch.phase='idle';batch.sessionId=null;$('#notice').hidden=true;}
+  renderBatch();renderDock();renderNavCount();
+  toast('Photo removed');
+}
+const drop=$('#drop');
+drop.addEventListener('click',e=>{if(!e.target.closest('#pick'))$('#file').click();});
+$('#pick').addEventListener('click',e=>{e.stopPropagation();$('#file').click();});
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click();}});
+$('#file').addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
+
+/* ---------- gallery ---------- */
+function renderNavCount(){$('#navCount').textContent=state.photos.length?String(state.photos.length):'';}
+function renderGallery(){
+  const sessions=[...state.sessions].sort((a,b)=>b.createdAt-a.createdAt);
+  if(state.filter!=='all'&&!sessions.some(s=>s.id===state.filter))state.filter='all';
+  $('#chips').innerHTML=sessions.length>1?[`<button class="chip" data-filter="all" aria-pressed="${state.filter==='all'}">All shoots</button>`].concat(sessions.map(s=>`<button class="chip" data-filter="${s.id}" aria-pressed="${state.filter===s.id}">${esc(s.title)} <span class="mono">${sessPhotos(s.id).length}</span></button>`)).join(''):'';
+  const shown=sessions.filter(s=>state.filter==='all'||s.id===state.filter);
+  if(!shown.length){
+    $('#gal').innerHTML=`<div class="panel empty"><b>No photos yet</b><p>Upload a batch and it appears here with your logo on every picture.</p><button class="btn primary" data-act="goto-upload">Upload photos</button></div>`;return;
+  }
+  $('#gal').innerHTML=shown.map(s=>{
+    const ph=sessPhotos(s.id),link=linkFor(s),bytes=ph.reduce((t,p)=>t+p.size,0);
+    return `<article class="panel sess" data-s="${s.id}">`+
+    `<div class="sess-head"><div class="sess-title"><input class="title-in" data-id="${s.id}" value="${esc(s.title)}" maxlength="60" aria-label="Shoot name"><div class="meta"><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span><span>${fmtDate(s.createdAt)}</span><span class="mono">${ph.length} photos</span><span class="mono">${fmtBytes(bytes)}</span>${s.example?'<span class="example-tag">Example</span>':''}</div></div>`+
+    `<div class="sess-actions"><button class="btn sm" data-act="toggle-pub" data-id="${s.id}">${s.published?'Unpublish':'Publish'}</button><button class="btn sm" data-act="preview" data-id="${s.id}"${s.published?'':' disabled'}>Preview as client</button><button class="btn sm danger" data-act="del-session" data-id="${s.id}">Delete shoot</button></div></div>`+
+    `<div class="linkrow"><input readonly value="${esc(link)}" aria-label="Client link for ${esc(s.title)}"><button class="btn sm primary" data-act="copy-link" data-id="${s.id}">Copy link</button></div>`+
+    `<div class="sheet">${ph.map((p,i)=>`<button class="ph-card" data-act="open-photo" data-id="${s.id}" data-i="${i}" aria-label="Open ${frameLabel(p.n)}"><div class="im"><img src="${urlFor(p,'t')}" alt="${esc(p.name)}" loading="lazy" decoding="async"></div><div class="cap"><span>${frameLabel(p.n)}</span><span>${p.w}×${p.h}</span></div></button>`).join('')}</div>`+
+    `</article>`;
+  }).join('');
+}
+$('#chips').addEventListener('click',e=>{const c=e.target.closest('[data-filter]');if(c){state.filter=c.dataset.filter;renderGallery();}});
+$('#gal').addEventListener('change',async e=>{
+  const i=e.target.closest('.title-in');if(!i)return;const s=state.sessions.find(x=>x.id===i.dataset.id);if(!s)return;
+  s.title=i.value.trim()||defaultTitle();i.value=s.title;await S.put('sessions',s);renderDock();renderChipsOnly();toast('Name saved');
+});
+function renderChipsOnly(){const keep=state.filter;renderGallery();state.filter=keep;}
+$('#gal').addEventListener('click',async e=>{
+  const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act,s=state.sessions.find(x=>x.id===a.dataset.id);
+  if(act==='goto-upload'){go('upload');}
+  else if(act==='copy-link'&&s){const inp=a.parentElement.querySelector('input');copyText(linkFor(s),inp);}
+  else if(act==='toggle-pub'&&s){s.published=!s.published;await S.put('sessions',s);renderGallery();renderDock();toast(s.published?'Shoot is live. The link is open.':'Shoot is a draft. The link is closed.');}
+  else if(act==='preview'&&s){openClient(s.code,true);}
+  else if(act==='open-photo'&&s){openLightbox(sessPhotos(s.id),+a.dataset.i,'studio');}
+  else if(act==='del-session'&&s){
+    if(a.dataset.armed!=='true'){a.dataset.armed='true';a.textContent='Click again to delete';clearTimeout(a._t);a._t=setTimeout(()=>{a.dataset.armed='false';a.textContent='Delete shoot';},3200);return;}
+    await removeSession(s);renderGallery();renderDock();renderNavCount();toast('Shoot deleted');
+  }
+});
+async function removeSession(s){
+  for(const p of sessPhotos(s.id))await removePhotoData(p);
+  await S.del('sessions',s.id);state.sessions=state.sessions.filter(x=>x.id!==s.id);
+  if(state.active===s.id)state.active=null;
+}
+async function removePhotoData(p){
+  ['_t','_u'].forEach(k=>{if(p[k])URL.revokeObjectURL(p[k]);});
+  await S.del('photos',p.id);state.photos=state.photos.filter(x=>x.id!==p.id);
+}
+
+/* ---------- lightbox ---------- */
+const lb={list:[],i:0,ctx:'studio'};
+function showLb(){
+  const p=lb.list[lb.i];if(!p)return;
+  $('#lbImg').src=urlFor(p,'u');$('#lbImg').alt=p.name;
+  $('#lbCap').textContent=`${frameLabel(p.n)}   ${lb.i+1} / ${lb.list.length}   ${p.w}×${p.h}`;
+  $('#lbPrev').hidden=$('#lbNext').hidden=lb.list.length<2;
+  $('#lbDel').hidden=lb.ctx!=='studio';$('#lbDel').textContent='Remove photo';$('#lbDel').dataset.armed='false';
+}
+function openLightbox(list,i,ctx){lb.list=list;lb.i=i;lb.ctx=ctx;$('#lb').hidden=false;showLb();$('#lbClose').focus();}
+function closeLb(){$('#lb').hidden=true;$('#lbImg').removeAttribute('src');}
+const stepLb=d=>{if(lb.list.length>1){lb.i=(lb.i+d+lb.list.length)%lb.list.length;showLb();}};
+$('#lbClose').addEventListener('click',closeLb);
+$('#lbPrev').addEventListener('click',()=>stepLb(-1));
+$('#lbNext').addEventListener('click',()=>stepLb(1));
+$('#lbDel').addEventListener('click',async e=>{
+  const b=e.currentTarget;
+  if(b.dataset.armed!=='true'){b.dataset.armed='true';b.textContent='Click again to remove';return;}
+  const p=lb.list[lb.i];await removePhotoData(p);lb.list.splice(lb.i,1);
+  const sid=p.sessionId;
+  if(!state.photos.some(x=>x.sessionId===sid)){const s=state.sessions.find(x=>x.id===sid);if(s)await removeSession(s);}
+  if(!lb.list.length)closeLb();else{lb.i=Math.min(lb.i,lb.list.length-1);showLb();}
+  renderGallery();renderDock();renderNavCount();
+});
+document.addEventListener('keydown',e=>{
+  if($('#lb').hidden)return;
+  if(e.key==='Escape')closeLb();else if(e.key==='ArrowLeft')stepLb(-1);else if(e.key==='ArrowRight')stepLb(1);
+});
+
+/* ---------- client view ---------- */
+function openClient(code,preview){
+  const s=state.sessions.find(x=>x.code===code),root=$('#client');
+  state.previewing=!!preview;$('#shell').hidden=true;root.hidden=false;window.scrollTo(0,0);
+  const banner=preview?`<div class="cl-banner"><span>Preview. This is what your client sees.</span><button class="btn sm" id="clBack">Back to studio</button></div>`:'';
+  if(!s||!s.published){
+    root.innerHTML=banner+`<div class="cl-top"><div class="brand">${lockupSvg()}</div></div><div class="cl-hero"><h1>Gallery not available</h1><p>This link is closed or does not exist on this device. Ask Snapshot Studio to send it again.</p></div><div class="cl-foot">Snapshot Studio</div>`;
+  }else{
+    const ph=sessPhotos(s.id);
+    root.innerHTML=banner+`<div class="cl-top"><div class="brand">${lockupSvg()}</div><span class="eyebrow">Private gallery</span></div>`+
+    `<div class="cl-hero"><p class="eyebrow">Your photos</p><h1>${esc(s.title)}</h1><p class="mono">${ph.length} photos · ${fmtDate(s.createdAt)}</p></div>`+
+    `<div class="masonry">${ph.map((p,i)=>`<button data-i="${i}" aria-label="Open ${frameLabel(p.n)}"><img src="${urlFor(p,'t')}" width="${Math.round(p.w*480/Math.max(p.w,p.h))}" height="${Math.round(p.h*480/Math.max(p.w,p.h))}" alt="Photo ${i+1}" loading="lazy" decoding="async"></button>`).join('')}</div>`+
+    `<div class="cl-foot">These photos carry the Snapshot Studio logo. Contact the studio for full-resolution files. Delivered with OneLogoSpot, a BYINFORGH product.</div>`;
+    root.querySelector('.masonry').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)openLightbox(ph,+b.dataset.i,'client');});
+  }
+  const back=$('#clBack');if(back)back.addEventListener('click',closeClient);
+}
+function closeClient(){$('#client').hidden=true;$('#client').innerHTML='';$('#shell').hidden=false;state.previewing=false;try{if(location.hash)history.replaceState(null,'',location.pathname+location.search);}catch(e){}go(state.page);}
+function routeFromHash(){
+  let m=null;try{m=/^#c-([a-z0-9]+)$/.exec(location.hash);}catch(e){}
+  if(m)openClient(m[1],false);
+}
+window.addEventListener('hashchange',routeFromHash);
+
+/* ---------- setup page ---------- */
+async function renderSetup(){
+  const bytes=state.photos.reduce((t,p)=>t+p.size+p.thumb.size,0);
+  $('#stats').innerHTML=[['Photos',state.photos.length],['Shoots',state.sessions.length],['Space used',fmtBytes(bytes)]].map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#persistTxt').textContent=persistent?'Photos are saved in this browser (IndexedDB) and stay after you close the tab. Clearing site data removes them.':'This browser blocked local storage, so photos are held in memory and disappear when the tab closes.';
+  let q=null;try{q=await navigator.storage.estimate();}catch(e){}
+  if(q&&q.quota){$('#quotaBar').style.width=Math.max(1,Math.min(100,(q.usage/q.quota)*100))+'%';$('#quotaTxt').textContent=`This browser lets the sample use up to ${fmtBytes(q.quota)}. ${fmtBytes(q.usage)} is in use.`;}
+  else{$('#quotaBar').style.width='0';$('#quotaTxt').textContent='This browser does not report how much space the sample may use.';}
+  renderPlanner();
+}
+function renderPlanner(){
+  const v=id=>Math.max(0,+$('#'+id).value||0);
+  const photos=v('pShoots')*12*v('pPhotos');
+  const orig=photos*v('pOrig')/1024,web=photos*(v('pWeb')+0.12)/1024;
+  const f=x=>x>=1000?(x/1024).toFixed(2)+' TB':x.toFixed(x<10?1:0)+' GB';
+  $('#plannerOut').innerHTML=[['Photos per year',photos.toLocaleString('en-GB')],['Originals, per year',f(orig)],['Logo copies and previews, per year',f(web)],['Total, per year',f(orig+web)]].map(([l,t])=>`<div class="stat"><b>${t}</b><span>${l}</span></div>`).join('');
+}
+['pShoots','pPhotos','pOrig','pWeb'].forEach(id=>$('#'+id).addEventListener('input',renderPlanner));
+
+/* ---------- boot ---------- */
+async function seed(){
+  if(state.sessions.length)return;
+  try{if(localStorage.getItem('ss-seeded'))return;}catch(e){}
+  const s={id:uid(),code:newCode(),title:'Sample shoot',createdAt:Date.now(),published:true,example:true};
+  await S.put('sessions',s);state.sessions.push(s);
+  const specs=[[11,1600,1067],[27,1600,1067],[42,1067,1600],[58,1600,1067],[73,1067,1600],[91,1600,1067]];
+  let n=0;
+  for(const [seed,w,h] of specs){
+    const v=await makeVersions(scene(seed,w,h),DEFAULTS);n++;
+    const p={id:uid(),sessionId:s.id,name:'sample-'+n+'.jpg',w:v.w,h:v.h,size:v.blob.size,blob:v.blob,thumb:v.thumb,createdAt:Date.now(),n};
+    await S.put('photos',p);state.photos.push(p);
+  }
+  try{localStorage.setItem('ss-seeded','1');}catch(e){}
+}
+async function init(){
+  $('#dropIco').innerHTML=markSvg();
+  buildPosGrid();syncControls();renderBatch();renderDock();
+  await openDb();
+  await Promise.all([fontsReady(),loadMarks()]);
+  assetsReady=true;
+  prevBase=scene(7,1200,800);redrawPreview();
+  try{state.sessions=await S.all('sessions');state.photos=await S.all('photos');}catch(e){state.sessions=[];state.photos=[];}
+  try{await seed();}catch(e){}
+  renderDock();renderNavCount();
+  routeFromHash();
+}
+init();
+})();
+</script>
