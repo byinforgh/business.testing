@@ -128,6 +128,21 @@ main{min-width:0;padding-block:36px 72px;padding-inline:var(--gutter)}
 @keyframes slide{from{margin-left:0}to{margin-left:40%}}
 .q .nm{font-size:12.5px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .q .row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.banner{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:16px 20px;border:1px solid var(--warn);border-radius:4px;background:color-mix(in srgb,var(--warn) 9%,var(--surface))}
+.banner div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.banner b{font-weight:700}
+.banner span{font-size:14px;color:var(--ink-2)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.drop.off{opacity:.55}
+.logo-up{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.logo-actions{display:flex;flex-wrap:wrap;gap:10px}
+.thumb{width:180px;height:108px;border:1px solid var(--line);border-radius:4px;display:flex;align-items:center;justify-content:center;padding:12px;background:repeating-conic-gradient(#9a9fa3 0 25%,#b4b8bb 0 50%) 0 0/16px 16px}
+.thumb img{max-width:100%;max-height:100%;display:block}
+.clprev{--ink-2:#9DA1A5;background:#0B0C0D;color:#F2F3F3;padding:22px;border-radius:4px;min-height:92px;display:flex;align-items:center}
+.cl-brand{min-width:0}
+.cl-brand .bimg{display:block;height:44px;width:auto;max-width:60vw}
+.cl-brand .bt{font:800 20px/1.1 var(--font-display);letter-spacing:.02em;text-transform:uppercase}
+.cl-brand .bt small{display:block;font:400 11px var(--font-display);letter-spacing:.3em;margin-top:5px;color:var(--ink-2)}
 .done-card{gap:14px}
 .done-card h2{font-size:18px}
 
@@ -262,6 +277,7 @@ td:first-child{font-weight:600;white-space:nowrap}
     <nav class="nav" aria-label="Main">
       <button data-go="upload" aria-current="page">Upload</button>
       <button data-go="gallery">Gallery <span class="count" id="navCount"></span></button>
+      <button data-go="settings">Settings</button>
       <button data-go="setup">Storage and setup</button>
     </nav>
     <div class="linkdock" id="linkdock"></div>
@@ -275,6 +291,8 @@ td:first-child{font-weight:600;white-space:nowrap}
         <h1>New photo batch</h1>
         <p class="lede">Drop up to 20 photos. Your logo goes on every picture and a link for your client is created for the batch.</p>
       </header>
+      <div class="banner" id="brandBanner" hidden><div><b>Add your logo before you upload</b><span>OneLogoSpot puts your logo on every photo. Set it up once in Settings.</span></div><button class="btn primary" data-act="goto-settings">Open Settings</button></div>
+      <p class="sub" id="brandNote" hidden></p>
       <div class="up-grid">
         <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
           <div class="panel">
@@ -311,11 +329,8 @@ td:first-child{font-weight:600;white-space:nowrap}
               <button class="tilebtn" id="tileBtn" data-pos="tile" aria-pressed="false">Tiled</button>
             </div>
           </div>
-          <div class="ctl"><span class="lbl">Logo</span>
-            <div class="seg" id="segStyle" role="group" aria-label="Logo style"><button data-style="full" aria-pressed="true">Full logo</button><button data-style="mark" aria-pressed="false">Camera only</button></div>
-          </div>
           <div class="ctl"><span class="lbl">Colour</span>
-            <div class="seg" id="segColor" role="group" aria-label="Logo colour"><button data-color="auto" aria-pressed="true">Auto</button><button data-color="#ffffff" aria-pressed="false">White</button><button data-color="#000000" aria-pressed="false">Black</button></div>
+            <div class="seg" id="segColor" role="group" aria-label="Logo colour"><button data-color="auto" aria-pressed="true">Auto</button><button data-color="#ffffff" aria-pressed="false">White</button><button data-color="#000000" aria-pressed="false">Black</button><button data-color="orig" aria-pressed="false">Original</button></div>
           </div>
           <div class="rng"><label for="rSize">Size</label><output id="oSize"></output><input id="rSize" type="range" min="8" max="60" step="1"></div>
           <div class="rng"><label for="rOp">Opacity</label><output id="oOp"></output><input id="rOp" type="range" min="20" max="100" step="1"></div>
@@ -339,6 +354,44 @@ td:first-child{font-weight:600;white-space:nowrap}
       </div>
       <div class="chips" id="chips"></div>
       <div id="gal" style="display:flex;flex-direction:column;gap:24px"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" id="p-settings" hidden>
+      <header class="ph">
+        <p class="eyebrow">Settings</p>
+        <h1>Your branding</h1>
+        <p class="lede">Add your business logo or name once. It goes on every photo you upload and appears at the top of your client galleries.</p>
+      </header>
+      <div class="up-grid">
+        <div class="panel">
+          <div class="field"><label for="bName">Business name</label><input id="bName" type="text" maxlength="40" placeholder="Your business name" autocomplete="off"></div>
+          <div class="ctl"><span class="lbl">Logo on your photos</span>
+            <div class="seg" id="segMode" role="group" aria-label="Logo type"><button data-mode="image" aria-pressed="false">Upload my logo</button><button data-mode="text" aria-pressed="true">Use my business name</button></div>
+          </div>
+          <div id="modeImage" class="ctl" hidden>
+            <div class="logo-up">
+              <div class="thumb" id="logoThumb" hidden><img id="logoThumbImg" alt="Your logo"></div>
+              <div class="logo-actions"><button class="btn primary" id="pickLogo" type="button">Choose logo file</button><button class="btn danger" id="logoRemove" type="button" hidden>Remove logo</button></div>
+            </div>
+            <p class="sub" id="logoEmpty">PNG with a transparent background works best. JPG, WebP and SVG also work.</p>
+            <input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+          </div>
+          <div id="modeText" class="ctl">
+            <div class="field"><label for="bLine2">Second line (optional)</label><input id="bLine2" type="text" maxlength="30" placeholder="Photography" autocomplete="off"></div>
+            <p class="sub">Your business name is set in bold capital letters and used as the logo.</p>
+          </div>
+          <p class="sub">Changes apply to photos you upload next. Photos already uploaded keep the logo they were made with.</p>
+          <div class="actions"><button class="btn primary" id="toUpload" data-act="to-upload">Continue to Upload</button></div>
+        </div>
+        <aside class="panel" aria-label="Branding preview">
+          <h2>Preview</h2>
+          <canvas class="prev" id="bPrev" width="1200" height="800" aria-label="Your logo on a sample photo"></canvas>
+          <p class="sub" id="bCap"></p>
+          <span class="lbl">Top of your client gallery</span>
+          <div class="clprev" id="bClient"></div>
+        </aside>
+      </div>
     </section>
 
     <!-- SETUP -->
@@ -457,7 +510,7 @@ td:first-child{font-weight:600;white-space:nowrap}
           <li><b>Upload</b><span class="s">Built. Up to 20 photos, logo placed automatically, client link created.</span></li>
           <li><b>Gallery</b><span class="s">Built. Shoots with logo photos, an automatic publish switch, and a client preview.</span></li>
           <li><b>Clients</b><span class="s">Next. A list of clients with their shoots, notes and contact details.</span></li>
-          <li><b>Branding</b><span class="s">Next. Replace the logo file, and save placement presets such as "wedding" or "portrait".</span></li>
+          <li><b>Settings</b><span class="s">Built. Upload your logo or use your business name. Next: save placement presets such as "wedding" or "portrait".</span></li>
           <li><b>Delivery</b><span class="s">Next. Let a client download the full-resolution files without the logo, after payment.</span></li>
           <li><b>Link activity</b><span class="s">Later. See when a client opened the link and which photos they viewed.</span></li>
         </ul>
@@ -481,7 +534,7 @@ td:first-child{font-weight:600;white-space:nowrap}
 'use strict';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const MAX_BATCH=20, MAX_FILE_MB=30;
-const DEFAULTS={pos:'br',style:'full',color:'auto',size:26,opacity:90,margin:3,autoApply:true,autoPublish:true};
+const DEFAULTS={pos:'br',color:'auto',size:26,opacity:90,margin:3,autoApply:true,autoPublish:true};
 let settings={...DEFAULTS};
 try{const s=JSON.parse(localStorage.getItem('ss-settings')||'null');if(s)settings={...DEFAULTS,...s};}catch(e){}
 const saveSettings=()=>{try{localStorage.setItem('ss-settings',JSON.stringify(settings));}catch(e){}};
@@ -491,53 +544,116 @@ const CODE_CHARS='abcdefghjkmnpqrstuvwxyz23456789';
 const newCode=()=>{const a=new Uint8Array(10);crypto.getRandomValues(a);return [...a].map(n=>CODE_CHARS[n%CODE_CHARS.length]).join('');};
 const fmtBytes=b=>b>=1073741824?(b/1073741824).toFixed(2)+' GB':b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
 const fmtDate=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-const frameLabel=n=>'SS-'+String(n).padStart(4,'0');
+const frameLabel=n=>'IMG-'+String(n).padStart(4,'0');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-/* ---------- logo geometry (redrawn from the studio logo) ---------- */
-const LOGO_W=580, LOGO_H=310, MARK_W=180;
-function markInner(u,c){
-  return `<defs><clipPath id="a${u}"><path clip-rule="evenodd" d="M-50 -50H250V360H-50Z M72 154a98 98 0 1 0 196 0a98 98 0 1 0 -196 0Z"/></clipPath><clipPath id="b${u}"><rect width="165" height="310"/></clipPath></defs>`+
-  `<g clip-path="url(#a${u})"><rect x="7" y="66" width="170" height="178" rx="24" fill="${c}"/><rect x="47" y="46" width="58" height="13" rx="6.5" fill="${c}"/></g>`+
-  `<circle cx="170" cy="154" r="72" fill="none" stroke="${c}" stroke-width="14" clip-path="url(#b${u})"/>`+
-  `<rect x="165" y="4" width="12" height="302" fill="${c}"/>`;
-}
-let svgCount=0;
-function lockupSvg(){
-  const u='L'+(++svgCount);
-  return `<svg viewBox="0 0 ${LOGO_W} ${LOGO_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Snapshot Studio">${markInner(u,'currentColor')}`+
-  `<text x="203" y="149" font-family="Montserrat,sans-serif" font-weight="800" font-size="71" textLength="372" lengthAdjust="spacing" fill="currentColor">SNAPSHOT</text>`+
-  `<text x="203" y="209" font-family="Montserrat,sans-serif" font-weight="400" font-size="55" textLength="372" lengthAdjust="spacing" fill="currentColor">STUDIO</text></svg>`;
-}
-function markSvg(){const u='M'+(++svgCount);return `<svg viewBox="0 0 ${MARK_W} 310" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${markInner(u,'currentColor')}</svg>`;}
-const markImgs={};
-function loadMarks(){
-  return Promise.all(['#ffffff','#000000'].map(c=>new Promise(res=>{
-    const i=new Image();i.onload=()=>res();i.onerror=()=>res();
-    i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${MARK_W}" height="310" viewBox="0 0 ${MARK_W} 310">${markInner('x',c)}</svg>`);
-    markImgs[c]=i;
-  })));
-}
+/* ---------- branding (logo image or business name) ---------- */
+const BRAND_KEY='ol-brand';
+const brand={mode:'text',name:'',line2:'',img:'',iw:0,ih:0};
+try{Object.assign(brand,JSON.parse(localStorage.getItem(BRAND_KEY)||'{}'));}catch(e){}
+let brandEl=null,sceneBase=null;
+const saveBrand=()=>{try{localStorage.setItem(BRAND_KEY,JSON.stringify(brand));return true;}catch(e){toast('Your browser could not save the logo. Free some space or allow site storage.');return false;}};
+const brandName=()=>(brand.name||'').trim();
+const brandReady=()=>brand.mode==='image'?!!(brand.img&&brandEl):!!brandName();
+function loadBrandImg(){return new Promise(res=>{if(!brand.img){brandEl=null;return res();}const i=new Image();i.onload=()=>{brandEl=i;res();};i.onerror=()=>{brandEl=null;res();};i.src=brand.img;});}
 async function fontsReady(){
-  try{await Promise.race([Promise.all([document.fonts.load('800 71px Montserrat'),document.fonts.load('400 55px Montserrat')]),sleep(3500)]);}catch(e){}
+  try{await Promise.race([Promise.all([document.fonts.load('800 100px Montserrat'),document.fonts.load('400 50px Montserrat')]),sleep(3500)]);}catch(e){}
 }
-function drawSpaced(g,text,font,x,y,target){
-  g.font=font;const chars=[...text];const ws=chars.map(ch=>g.measureText(ch).width);
-  const total=ws.reduce((a,b)=>a+b,0);const gap=(target-total)/(chars.length-1);let cx=x;
-  chars.forEach((ch,i)=>{g.fillText(ch,cx,y);cx+=ws[i]+gap;});
-}
-function buildLogo(style,color,lw){
-  const nativeW=style==='mark'?MARK_W:LOGO_W;const sc=lw/nativeW;const lh=Math.max(1,Math.round(LOGO_H*sc));
-  const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(lw));c.height=lh;
-  const g=c.getContext('2d');g.scale(sc,sc);
-  try{g.drawImage(markImgs[color],0,0,MARK_W,310);}catch(e){}
-  if(style==='full'){
-    g.fillStyle=color;g.textBaseline='alphabetic';
-    drawSpaced(g,'SNAPSHOT','800 71px Montserrat, sans-serif',203,149,372);
-    drawSpaced(g,'STUDIO','400 55px Montserrat, sans-serif',203,209,372);
+const tmg=document.createElement('canvas').getContext('2d');
+const F1="800 100px Montserrat, 'Figtree', sans-serif";
+const F2=px=>'400 '+px+'px Montserrat, sans-serif';
+function textLayout(){
+  const n=brandName().toUpperCase()||' ',l2=(brand.line2||'').trim().toUpperCase();
+  tmg.font=F1;const w1=Math.max(10,tmg.measureText(n).width);
+  let fs2=0,sp2=0,H=84;
+  if(l2){
+    fs2=52;tmg.font=F2(fs2);let w2=tmg.measureText(l2).width;const c=[...l2].length;
+    if(w2>w1){fs2=fs2*w1/w2;tmg.font=F2(fs2);w2=tmg.measureText(l2).width;}
+    sp2=c>1?Math.min(fs2*.9,Math.max(0,(w1-w2)/(c-1))):0;
+    H=Math.ceil(110+fs2*.72);
   }
+  return {n,l2,w1,fs2,sp2,H};
+}
+function drawTextLogo(g,color,lw){
+  const L=textLayout(),sc=lw/L.w1;
+  g.save();g.scale(sc,sc);g.fillStyle=color;g.textBaseline='alphabetic';g.font=F1;g.fillText(L.n,0,76);
+  if(L.l2){g.font=F2(L.fs2);let x=0;const y=76+26+L.fs2*.72;for(const ch of [...L.l2]){g.fillText(ch,x,y);x+=g.measureText(ch).width+L.sp2;}}
+  g.restore();
+}
+function logoAspect(){
+  if(brand.mode==='image'&&brandEl)return brand.ih/brand.iw;
+  const L=textLayout();return L.H/L.w1;
+}
+function renderLogo(color,lw){
+  const w=Math.max(1,Math.round(lw)),h=Math.max(1,Math.round(lw*logoAspect()));
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  if(brand.mode==='image'&&brandEl){
+    g.imageSmoothingQuality='high';g.drawImage(brandEl,0,0,w,h);
+    if(color!=='orig'){g.globalCompositeOperation='source-in';g.fillStyle=color;g.fillRect(0,0,w,h);}
+  }else drawTextLogo(g,color==='orig'?'#ffffff':color,w);
   return c;
 }
+function brandHeaderHtml(){
+  if(!brandReady())return '';
+  if(brand.mode==='image')return '<div class="cl-brand"><img class="bimg" src="'+renderLogo('#ffffff',360).toDataURL('image/png')+'" alt="'+esc(brandName()||'Logo')+'"></div>';
+  return '<div class="cl-brand"><div class="bt">'+esc(brandName())+(brand.line2?'<small>'+esc(brand.line2)+'</small>':'')+'</div></div>';
+}
+async function importLogo(file){
+  if(!/^image\//.test(file.type)||file.size>8*1048576){toast('Choose an image file under 8 MB.');return;}
+  try{
+    const bm=await loadBitmap(file);let [w0,h0]=dims(bm);if(!w0||!h0){w0=800;h0=400;}
+    const k=file.type==='image/svg+xml'?800/w0:Math.min(1,800/w0),w=Math.max(1,Math.round(w0*k)),h=Math.max(1,Math.round(h0*k));
+    const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});
+    g.drawImage(bm,0,0,w,h);if(bm.close)bm.close();
+    const id=g.getImageData(0,0,w,h),d=id.data;
+    let hasA=false;for(let i=3;i<d.length;i+=4)if(d[i]<250){hasA=true;break;}
+    if(!hasA){
+      const lumAt=(x,y)=>{const i=(y*w+x)*4;return(0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255;};
+      const cs=[lumAt(0,0),lumAt(w-1,0),lumAt(0,h-1),lumAt(w-1,h-1)],bg=cs.reduce((a,b)=>a+b,0)/4,spread=Math.max(...cs)-Math.min(...cs);
+      if(spread<0.12&&(bg>0.8||bg<0.2)){
+        for(let i=0;i<d.length;i+=4){
+          const r=d[i],gg=d[i+1],b=d[i+2];
+          if(bg>0.8){const a=Math.max(255-r,255-gg,255-b)/255;if(a<0.02)d[i+3]=0;else{d[i]=255-(255-r)/a;d[i+1]=255-(255-gg)/a;d[i+2]=255-(255-b)/a;d[i+3]=Math.min(255,a*293);}}
+          else{const a=Math.max(r,gg,b)/255;if(a<0.02)d[i+3]=0;else{d[i]=r/a;d[i+1]=gg/a;d[i+2]=b/a;d[i+3]=Math.min(255,a*293);}}
+        }
+        g.putImageData(id,0,0);
+      }
+    }
+    let x0=w,y0=h,x1=-1,y1=-1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>12){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+    if(x1<0){toast('Could not find a logo in that image. Try a PNG with a transparent background.');return;}
+    const bw=x1-x0+1,bh=y1-y0+1,out=document.createElement('canvas');out.width=bw;out.height=bh;
+    out.getContext('2d').drawImage(c,x0,y0,bw,bh,0,0,bw,bh);
+    const url=out.toDataURL('image/png');
+    if(url.length>3500000){toast('That logo file is too detailed. Try a simpler or smaller image.');return;}
+    Object.assign(brand,{mode:'image',img:url,iw:bw,ih:bh});
+    if(!saveBrand())return;
+    await loadBrandImg();afterBrandChange();renderSettings();toast('Logo saved');
+  }catch(e){toast('That file could not be read as an image.');}
+}
+function drawBrandPreview(){
+  const c=$('#bPrev');if(!c||!sceneBase)return;
+  c.width=sceneBase.width;c.height=sceneBase.height;const g=c.getContext('2d');g.drawImage(sceneBase,0,0);drawWatermark(g,c.width,c.height,settings);
+  $('#bCap').textContent=brandReady()?'Preview on a sample photo. Position and size are set on the Upload page.':'Add a logo or your business name to see the preview.';
+  $('#bClient').innerHTML=brandReady()?brandHeaderHtml():'<span class="sub">Your logo or name appears here.</span>';
+}
+function renderBrandBanner(){
+  const ok=brandReady();
+  $('#brandBanner').hidden=ok;$('#brandNote').hidden=!ok;$('#drop').classList.toggle('off',!ok);
+  if(ok)$('#brandNote').innerHTML='Logo in use: <b>'+esc(brand.mode==='image'?(brandName()||'your uploaded logo'):brandName())+'</b>. <button class="linkbtn" data-act="goto-settings">Change in Settings</button>';
+  const t=$('#toUpload');if(t)t.disabled=!ok;
+}
+function renderSettings(){
+  $('#bName').value=brand.name||'';$('#bLine2').value=brand.line2||'';
+  $$('#segMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===brand.mode)));
+  $('#modeImage').hidden=brand.mode!=='image';$('#modeText').hidden=brand.mode!=='text';
+  const has=!!(brand.img&&brandEl);
+  $('#logoThumb').hidden=!has;$('#logoRemove').hidden=!has;$('#logoEmpty').hidden=has;
+  if(has)$('#logoThumbImg').src=brand.img;else $('#logoThumbImg').removeAttribute('src');
+  drawBrandPreview();renderBrandBanner();
+}
+function afterBrandChange(){drawBrandPreview();renderBrandBanner();schedulePreview();}
+
 const lumCv=document.createElement('canvas');lumCv.width=lumCv.height=16;
 function regionLum(src,x,y,w,h){
   const W=src.width,H=src.height;x=Math.max(0,Math.min(W-1,Math.round(x)));y=Math.max(0,Math.min(H-1,Math.round(y)));
@@ -547,23 +663,22 @@ function regionLum(src,x,y,w,h){
   return t/(256*255);
 }
 function drawWatermark(ctx,W,H,s){
-  const cv=ctx.canvas,tile=s.pos==='tile';
-  const mg=Math.round(W*s.margin/100);
+  if(!brandReady())return;
+  const cv=ctx.canvas,tile=s.pos==='tile',mg=Math.round(W*s.margin/100),asp=logoAspect();
   let lw=Math.round(W*s.size/100);
-  if(s.style==='mark')lw=Math.round(lw*0.42);
   if(tile)lw=Math.round(lw*0.55);
-  let lh=Math.round(LOGO_H*lw/(s.style==='mark'?MARK_W:LOGO_W));
-  if(lh>H*0.6){lw=Math.round(lw*(H*0.6/lh));lh=Math.round(H*0.6);}
+  let lh=Math.round(lw*asp);const cap=tile?H*0.2:H*0.4;
+  if(lh>cap){lw=Math.round(lw*cap/lh);lh=Math.round(cap);}
   let x=0,y=0;
   if(!tile){
     const cols={l:mg,c:(W-lw)/2,r:W-lw-mg},rows={t:mg,m:(H-lh)/2,b:H-lh-mg};
     x=cols[s.pos[1]];y=rows[s.pos[0]];
   }
-  let color=s.color;
+  const orig=s.color==='orig';let color=s.color;
   if(color==='auto')color=(tile?regionLum(cv,0,0,W,H):regionLum(cv,x,y,lw,lh))<0.55?'#ffffff':'#000000';
-  const logo=buildLogo(s.style,color,lw);
+  const logo=renderLogo(orig?'orig':color,lw);
   ctx.save();
-  ctx.shadowColor=color==='#ffffff'?'rgba(0,0,0,.45)':'rgba(255,255,255,.4)';
+  ctx.shadowColor=orig?'rgba(0,0,0,.35)':(color==='#ffffff'?'rgba(0,0,0,.45)':'rgba(255,255,255,.4)');
   ctx.shadowBlur=Math.max(2,lw*0.03);
   if(tile){
     ctx.globalAlpha=s.opacity/100*0.6;
@@ -656,9 +771,10 @@ async function copyText(text,input){
 /* ---------- navigation ---------- */
 function go(page){
   state.page=page;
-  ['upload','gallery','setup'].forEach(p=>{$('#p-'+p).hidden=p!==page;});
+  ['upload','gallery','settings','setup'].forEach(p=>{$('#p-'+p).hidden=p!==page;});
   $$('.nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===page?'page':'false'));
   if(page==='gallery')renderGallery();
+  if(page==='settings')renderSettings();
   if(page==='setup')renderSetup();
   window.scrollTo(0,0);
 }
@@ -688,7 +804,6 @@ function buildPosGrid(){
 }
 function syncControls(){
   $$('[data-pos]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pos===settings.pos)));
-  $$('#segStyle button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.style===settings.style)));
   $$('#segColor button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===settings.color)));
   $('#rSize').value=settings.size;$('#rOp').value=settings.opacity;$('#rMg').value=settings.margin;
   $('#oSize').textContent=settings.size+'%';$('#oOp').textContent=settings.opacity+'%';$('#oMg').textContent=settings.margin+'%';
@@ -713,16 +828,22 @@ async function setPreviewFromFile(file){
 function onSetting(patch){Object.assign(settings,patch);saveSettings();syncControls();schedulePreview();}
 $('#posgrid').addEventListener('click',e=>{const b=e.target.closest('[data-pos]');if(b)onSetting({pos:b.dataset.pos});});
 $('#tileBtn').addEventListener('click',()=>onSetting({pos:'tile'}));
-$('#segStyle').addEventListener('click',e=>{const b=e.target.closest('[data-style]');if(b)onSetting({style:b.dataset.style});});
 $('#segColor').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(b)onSetting({color:b.dataset.color});});
 $('#rSize').addEventListener('input',e=>onSetting({size:+e.target.value}));
 $('#rOp').addEventListener('input',e=>onSetting({opacity:+e.target.value}));
 $('#rMg').addEventListener('input',e=>onSetting({margin:+e.target.value}));
+$('#bName').addEventListener('input',e=>{brand.name=e.target.value;saveBrand();afterBrandChange();});
+$('#bLine2').addEventListener('input',e=>{brand.line2=e.target.value;saveBrand();afterBrandChange();});
+$('#segMode').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;brand.mode=b.dataset.mode;saveBrand();renderSettings();schedulePreview();});
+$('#pickLogo').addEventListener('click',()=>$('#logoFile').click());
+$('#logoFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)importLogo(f);});
+$('#logoRemove').addEventListener('click',()=>{brand.img='';brand.iw=brand.ih=0;brandEl=null;saveBrand();renderSettings();schedulePreview();toast('Logo removed');});
 $('#swAuto').addEventListener('click',()=>{onSetting({autoApply:!settings.autoApply});renderBatch();});
 $('#swPub').addEventListener('click',()=>onSetting({autoPublish:!settings.autoPublish}));
 
 function resetBatch(){batch.items.forEach(i=>URL.revokeObjectURL(i.url));batch.items=[];batch.phase='idle';batch.sessionId=null;$('#notice').hidden=true;$('#doneCard').hidden=true;renderBatch();}
 function addFiles(list){
+  if(!brandReady()){toast('Add your logo in Settings first.');go('settings');return;}
   if(batch.phase==='processing'){toast('Wait for the current batch to finish');return;}
   if(batch.phase==='done')resetBatch();
   let bad=0,over=0;
@@ -793,6 +914,8 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act;
   if(act==='run')run();
   else if(act==='clear')resetBatch();
+  else if(act==='goto-settings')go('settings');
+  else if(act==='to-upload')go('upload');
   else if(act==='wipe'){
     if(a.dataset.armed!=='true'){a.dataset.armed='true';a.textContent='Click again to clear everything';clearTimeout(a._t);a._t=setTimeout(()=>{a.dataset.armed='false';a.textContent='Clear all photos on this device';},3500);return;}
     a.dataset.armed='false';a.textContent='Clear all photos on this device';
@@ -821,10 +944,11 @@ async function removeItem(id){
   renderBatch();renderDock();renderNavCount();
   toast('Photo removed');
 }
+const openPicker=()=>{if(!brandReady()){toast('Add your logo in Settings first.');go('settings');return;}$('#file').click();};
 const drop=$('#drop');
-drop.addEventListener('click',e=>{if(!e.target.closest('#pick'))$('#file').click();});
-$('#pick').addEventListener('click',e=>{e.stopPropagation();$('#file').click();});
-drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click();}});
+drop.addEventListener('click',e=>{if(!e.target.closest('#pick'))openPicker();});
+$('#pick').addEventListener('click',e=>{e.stopPropagation();openPicker();});
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPicker();}});
 $('#file').addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
 ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
@@ -915,13 +1039,13 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- gallery file for clients ---------- */
-const CLIENT_CSS='*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#0B0C0D;color:#F2F3F3;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{padding:48px 5vw 24px;max-width:1500px;margin:0 auto}.e{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:#9DA1A5}h1{margin:12px 0 8px;font-size:clamp(30px,6vw,64px);line-height:1;text-transform:uppercase;letter-spacing:-.015em}header p{margin:0;color:#9DA1A5}#g{columns:4 260px;column-gap:14px;padding:0 5vw 40px;max-width:1500px;margin:0 auto}#g button{display:block;width:100%;margin:0 0 14px;padding:0;border:0;background:#1E2022;break-inside:avoid;cursor:pointer}#g img{display:block;width:100%;height:auto}footer{padding:22px 5vw;border-top:1px solid #2B2D2F;color:#9DA1A5;font-size:13.5px}#lb{position:fixed;inset:0;background:rgba(6,7,8,.97);display:flex;align-items:center;justify-content:center;padding:56px 56px 24px}#lb img{max-width:100%;max-height:100%;object-fit:contain}#lb button,#lb a{position:absolute;border:1px solid #3A3D40;background:#141516;color:#F2F3F3;border-radius:6px;padding:8px 14px;font:600 13px system-ui,sans-serif;text-decoration:none;cursor:pointer}#x{top:12px;right:12px}#dl{top:12px;right:84px}#pv{left:8px;top:50%}#nx{right:8px;top:50%}@media(max-width:600px){#lb{padding:56px 8px 64px}#pv,#nx{top:auto;bottom:12px}}';
+const CLIENT_CSS='*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#0B0C0D;color:#F2F3F3;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}header{padding:48px 5vw 24px;max-width:1500px;margin:0 auto}.e{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:#9DA1A5}h1{margin:12px 0 8px;font-size:clamp(30px,6vw,64px);line-height:1;text-transform:uppercase;letter-spacing:-.015em}header p{margin:0;color:#9DA1A5}.cl-brand{margin-bottom:32px}.bimg{display:block;height:44px;width:auto;max-width:70vw}.bt{font:800 20px/1.1 system-ui,sans-serif;letter-spacing:.02em;text-transform:uppercase}.bt small{display:block;font:400 11px system-ui,sans-serif;letter-spacing:.3em;margin-top:5px;color:#9DA1A5}#g{columns:4 260px;column-gap:14px;padding:0 5vw 40px;max-width:1500px;margin:0 auto}#g button{display:block;width:100%;margin:0 0 14px;padding:0;border:0;background:#1E2022;break-inside:avoid;cursor:pointer}#g img{display:block;width:100%;height:auto}footer{padding:22px 5vw;border-top:1px solid #2B2D2F;color:#9DA1A5;font-size:13.5px}#lb{position:fixed;inset:0;background:rgba(6,7,8,.97);display:flex;align-items:center;justify-content:center;padding:56px 56px 24px}#lb img{max-width:100%;max-height:100%;object-fit:contain}#lb button,#lb a{position:absolute;border:1px solid #3A3D40;background:#141516;color:#F2F3F3;border-radius:6px;padding:8px 14px;font:600 13px system-ui,sans-serif;text-decoration:none;cursor:pointer}#x{top:12px;right:12px}#dl{top:12px;right:84px}#pv{left:8px;top:50%}#nx{right:8px;top:50%}@media(max-width:600px){#lb{padding:56px 8px 64px}#pv,#nx{top:auto;bottom:12px}}';
 const CLIENT_JS="var D=__DATA__;var g=document.getElementById('g'),lb=document.getElementById('lb'),im=document.getElementById('im'),dl=document.getElementById('dl'),i=0;function show(n){i=(n+D.length)%D.length;im.src=D[i];dl.href=D[i];dl.download='photo-'+(i+1)+'.jpg'}D.forEach(function(s,n){var b=document.createElement('button'),e=document.createElement('img');e.src=s;e.alt='Photo '+(n+1);b.appendChild(e);b.onclick=function(){show(n);lb.hidden=false};g.appendChild(b)});document.getElementById('x').onclick=function(){lb.hidden=true};document.getElementById('pv').onclick=function(){show(i-1)};document.getElementById('nx').onclick=function(){show(i+1)};document.addEventListener('keydown',function(e){if(lb.hidden)return;if(e.key==='Escape')lb.hidden=true;if(e.key==='ArrowLeft')show(i-1);if(e.key==='ArrowRight')show(i+1)});";
 function buildClientPage(s,imgs){
   const t=esc(s.title),data=JSON.stringify(imgs);
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+t+'</title><style>'+CLIENT_CSS+'</style></head><body>'+
-  '<header><div class="e">Private gallery</div><h1>'+t+'</h1><p>'+imgs.length+' photos, '+fmtDate(s.createdAt)+'</p></header><div id="g"></div>'+
-  '<footer>These photos carry the Snapshot Studio logo. Contact the studio for full-resolution files. Delivered with OneLogoSpot, a BYINFORGH product.</footer>'+
+  '<header>'+brandHeaderHtml()+'<div class="e">Private gallery</div><h1>'+t+'</h1><p>'+imgs.length+' photos, '+fmtDate(s.createdAt)+'</p></header><div id="g"></div>'+
+  '<footer>These photos carry the '+esc(brandName()||'studio')+' logo. Contact the studio for full-resolution files. Delivered with OneLogoSpot, a BYINFORGH product.</footer>'+
   '<div id="lb" hidden><button id="x" aria-label="Close">Close</button><a id="dl" download="photo.jpg">Download</a><button id="pv" aria-label="Previous">&#8592;</button><img id="im" alt=""><button id="nx" aria-label="Next">&#8594;</button></div>'+
   '<script>'+CLIENT_JS.replace('__DATA__',()=>data)+'<\/script></body></html>';
 }
@@ -949,13 +1073,13 @@ function openClient(code,preview){
   state.previewing=!!preview;$('#shell').hidden=true;root.hidden=false;window.scrollTo(0,0);
   const banner=preview?`<div class="cl-banner"><span>Preview. This is what your client sees.</span><button class="btn sm" id="clBack">Back to studio</button></div>`:'';
   if(!s||!s.published){
-    root.innerHTML=banner+`<div class="cl-top"><div class="brand">${lockupSvg()}</div></div><div class="cl-hero"><h1>Gallery not available</h1><p>This link is closed or does not exist on this device. Ask Snapshot Studio to send it again.</p></div><div class="cl-foot">Snapshot Studio</div>`;
+    root.innerHTML=banner+`<div class="cl-top">${brandHeaderHtml()}</div><div class="cl-hero"><h1>Gallery not available</h1><p>This link is closed or does not exist on this device. Ask ${esc(brandName()||'the studio')} to send it again.</p></div><div class="cl-foot">Snapshot Studio</div>`;
   }else{
     const ph=sessPhotos(s.id);
-    root.innerHTML=banner+`<div class="cl-top"><div class="brand">${lockupSvg()}</div><span class="eyebrow">Private gallery</span></div>`+
+    root.innerHTML=banner+`<div class="cl-top">${brandHeaderHtml()}<span class="eyebrow">Private gallery</span></div>`+
     `<div class="cl-hero"><p class="eyebrow">Your photos</p><h1>${esc(s.title)}</h1><p class="mono">${ph.length} photos · ${fmtDate(s.createdAt)}</p></div>`+
     `<div class="masonry">${ph.map((p,i)=>`<button data-i="${i}" aria-label="Open ${frameLabel(p.n)}"><img src="${urlFor(p,'t')}" width="${Math.round(p.w*480/Math.max(p.w,p.h))}" height="${Math.round(p.h*480/Math.max(p.w,p.h))}" alt="Photo ${i+1}" loading="lazy" decoding="async"></button>`).join('')}</div>`+
-    `<div class="cl-foot">These photos carry the Snapshot Studio logo. Contact the studio for full-resolution files. Delivered with OneLogoSpot, a BYINFORGH product.</div>`;
+    `<div class="cl-foot">These photos carry the ${esc(brandName()||'studio')} logo. Contact the studio for full-resolution files. Delivered with OneLogoSpot, a BYINFORGH product.</div>`;
     root.querySelector('.masonry').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)openLightbox(ph,+b.dataset.i,'client');});
   }
   const back=$('#clBack');if(back)back.addEventListener('click',closeClient);
@@ -987,30 +1111,17 @@ function renderPlanner(){
 ['pShoots','pPhotos','pOrig','pWeb'].forEach(id=>$('#'+id).addEventListener('input',renderPlanner));
 
 /* ---------- boot ---------- */
-async function seed(){
-  if(state.sessions.length)return;
-  try{if(localStorage.getItem('ss-seeded'))return;}catch(e){}
-  const s={id:uid(),code:newCode(),title:'Sample shoot',createdAt:Date.now(),published:true,example:true};
-  await S.put('sessions',s);state.sessions.push(s);
-  const specs=[[11,1600,1067],[27,1600,1067],[42,1067,1600],[58,1600,1067],[73,1067,1600],[91,1600,1067]];
-  let n=0;
-  for(const [seed,w,h] of specs){
-    const v=await makeVersions(scene(seed,w,h),DEFAULTS);n++;
-    const p={id:uid(),sessionId:s.id,name:'sample-'+n+'.jpg',w:v.w,h:v.h,size:v.blob.size,blob:v.blob,thumb:v.thumb,createdAt:Date.now(),n};
-    await S.put('photos',p);state.photos.push(p);
-  }
-  try{localStorage.setItem('ss-seeded','1');}catch(e){}
-}
 async function init(){
-  $('#dropIco').innerHTML=markSvg();
+  $('#dropIco').innerHTML='<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="9" width="38" height="30" rx="4"/><circle cx="17" cy="21" r="4"/><path d="M5 35l11-9 8 7 6-5 13 10"/></svg>';
   buildPosGrid();syncControls();renderBatch();renderDock();
   await openDb();
-  await Promise.all([fontsReady(),loadMarks()]);
+  await Promise.all([fontsReady(),loadBrandImg()]);
   assetsReady=true;
-  prevBase=scene(7,1200,800);redrawPreview();
+  sceneBase=scene(7,1200,800);prevBase=sceneBase;redrawPreview();
   try{state.sessions=await S.all('sessions');state.photos=await S.all('photos');}catch(e){state.sessions=[];state.photos=[];}
-  try{await seed();}catch(e){}
-  renderDock();renderNavCount();
+  try{for(const s of state.sessions.filter(x=>x.example))await removeSession(s);}catch(e){}
+  renderDock();renderNavCount();renderBrandBanner();
+  if(!brandReady()&&!/^#c-/.test(location.hash)&&!state.photos.length)go('settings');
   routeFromHash();
 }
 init();
