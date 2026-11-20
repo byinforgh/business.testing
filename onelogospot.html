@@ -788,7 +788,7 @@ function renderDock(){
   el.innerHTML=`<div class="dk-head"><span class="eyebrow">Client link</span><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span></div>`+
   `<div class="dk-title">${esc(s.title)} <span class="mono" style="font-weight:400;color:var(--ink-2)">${n}</span></div>`+
   `<div class="dk-row"><input id="dkInput" readonly value="${esc(link)}" aria-label="Client link"><button class="btn primary sm" data-act="copy-dock">Copy</button></div>`+
-  (s.published?`<a class="dk-open" href="${esc(link)}" target="_blank" rel="noopener">Open as your client</a>`:`<p class="dk-note">Publish this shoot in the gallery to open the link.</p>`);
+  (s.published?`<a class="dk-open" href="${esc(link)}" target="_blank" rel="noopener">Open as your client</a><p class="dk-note">Test version: this link opens on this device only. Send clients the gallery file.</p>`:`<p class="dk-note">Publish this shoot in the gallery to open the link.</p>`);
 }
 $('#linkdock').addEventListener('click',e=>{
   if(e.target.closest('[data-act=copy-dock]')){const i=$('#dkInput');copyText(i.value,i);}
@@ -908,7 +908,7 @@ function renderDone(){
   card.innerHTML=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2>${n} photo${n>1?'s':''} ready</h2><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span></div>`+
   `<p class="sub">${esc(s.title)}. ${s.published?'Send this link to your client.':'This shoot is a draft. Publish it in the gallery to open the link.'}</p>`+
   `<div class="linkrow"><input id="doneInput" readonly value="${esc(link)}" aria-label="Client link"><button class="btn primary" data-act="copy-done">Copy link</button></div>`+
-  `<div class="actions"><button class="btn" data-act="to-gallery">Open gallery</button>${s.published?'<button class="btn" data-act="preview-done">Preview as client</button>':''}</div>`;
+  `<p class="notice">Test version: this link opens on this device only. To send these photos to a client now, use Download gallery file.</p><div class="actions"><button class="btn primary" data-act="export-done">Download gallery file</button><button class="btn" data-act="to-gallery">Open gallery</button>${s.published?'<button class="btn" data-act="preview-done">Preview as client</button>':''}</div>`;
 }
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act;
@@ -923,6 +923,7 @@ document.addEventListener('click',e=>{
   }
   else if(act==='rm-item')removeItem(a.dataset.id);
   else if(act==='again'){resetBatch();$('#sessionName').value='';}
+  else if(act==='export-done'){const s=state.sessions.find(x=>x.id===batch.sessionId);if(s)exportShoot(s,a);}
   else if(act==='copy-done'){const i=$('#doneInput');copyText(i.value,i);}
   else if(act==='to-gallery'){state.filter=batch.sessionId||'all';go('gallery');}
   else if(act==='preview-done'){const s=state.sessions.find(x=>x.id===batch.sessionId);if(s)openClient(s.code,true);}
@@ -972,6 +973,7 @@ function renderGallery(){
     `<div class="sess-head"><div class="sess-title"><input class="title-in" data-id="${s.id}" value="${esc(s.title)}" maxlength="60" aria-label="Shoot name"><div class="meta"><span class="pill ${s.published?'live':'draft'}">${s.published?'Live':'Draft'}</span><span>${fmtDate(s.createdAt)}</span><span class="mono">${ph.length} photos</span><span class="mono">${fmtBytes(bytes)}</span>${s.example?'<span class="example-tag">Example</span>':''}</div></div>`+
     `<div class="sess-actions"><button class="btn sm" data-act="toggle-pub" data-id="${s.id}">${s.published?'Unpublish':'Publish'}</button><button class="btn sm" data-act="preview" data-id="${s.id}"${s.published?'':' disabled'}>Preview as client</button><button class="btn sm" data-act="export" data-id="${s.id}">Download gallery file</button><button class="btn sm danger" data-act="del-session" data-id="${s.id}">Delete shoot</button></div></div>`+
     `<div class="linkrow"><input readonly value="${esc(link)}" aria-label="Client link for ${esc(s.title)}"><button class="btn sm primary" data-act="copy-link" data-id="${s.id}">Copy link</button></div>`+
+    `<p class="sub">Test version: this link opens on this device only. To send a client these photos now, use Download gallery file.</p>`+
     `<div class="sheet">${ph.map((p,i)=>`<button class="ph-card" data-act="open-photo" data-id="${s.id}" data-i="${i}" aria-label="Open ${frameLabel(p.n)}"><div class="im"><img src="${urlFor(p,'t')}" alt="${esc(p.name)}" loading="lazy" decoding="async"></div><div class="cap"><span>${frameLabel(p.n)}</span><span>${p.w}×${p.h}</span></div></button>`).join('')}</div>`+
     `</article>`;
   }).join('');
@@ -1073,7 +1075,7 @@ function openClient(code,preview){
   state.previewing=!!preview;$('#shell').hidden=true;root.hidden=false;window.scrollTo(0,0);
   const banner=preview?`<div class="cl-banner"><span>Preview. This is what your client sees.</span><button class="btn sm" id="clBack">Back to studio</button></div>`:'';
   if(!s||!s.published){
-    root.innerHTML=banner+`<div class="cl-top">${brandHeaderHtml()}</div><div class="cl-hero"><h1>Gallery not available</h1><p>This link is closed or does not exist on this device. Ask ${esc(brandName()||'the studio')} to send it again.</p></div><div class="cl-foot">Snapshot Studio</div>`;
+    root.innerHTML=banner+`<div class="cl-top">${brandHeaderHtml()}</div><div class="cl-hero"><h1>Gallery not available</h1><p>This gallery cannot be opened on this device. Ask ${esc(brandName()||'the studio')} to send you the gallery file instead.</p></div><div class="cl-foot">Delivered with OneLogoSpot, a BYINFORGH product.</div>`;
   }else{
     const ph=sessPhotos(s.id);
     root.innerHTML=banner+`<div class="cl-top">${brandHeaderHtml()}<span class="eyebrow">Private gallery</span></div>`+
