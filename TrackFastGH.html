@@ -1,0 +1,503 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>TrackFastGH</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: left nav + content on desktop, scrolling tab strip on phones. Role switch (Reseller / Admin) in the top bar. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eaeef2; --line:#dce2e8;
+  --fg:#0e1a26; --muted:#5b6b7b; --accent:#0b6e5c; --accent-fg:#ffffff; --accent-soft:#dff2ec;
+  --gold:#d9930d; --gold-soft:#fbefd3;
+  --good:#16794a; --good-soft:#dcf3e5; --warn:#a46a00; --warn-soft:#fbefd3;
+  --bad:#b3261e; --bad-soft:#fbe3e0; --info:#1d5fa8; --info-soft:#dfeaf8;
+  --font-display:'Space Grotesk',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c141c; --surface:#131e29; --surface-2:#1a2733; --line:#263544;
+  --fg:#e7edf3; --muted:#92a3b4; --accent:#3cc4a6; --accent-fg:#06231c; --accent-soft:#12372f;
+  --gold:#f0b43a; --gold-soft:#3a2d10;
+  --good:#58d08c; --good-soft:#12301f; --warn:#f0b43a; --warn-soft:#3a2d10;
+  --bad:#ff8a80; --bad-soft:#40201d; --info:#79b2ee; --info-soft:#152b45; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c141c; --surface:#131e29; --surface-2:#1a2733; --line:#263544;
+  --fg:#e7edf3; --muted:#92a3b4; --accent:#3cc4a6; --accent-fg:#06231c; --accent-soft:#12372f;
+  --gold:#f0b43a; --gold-soft:#3a2d10;
+  --good:#58d08c; --good-soft:#12301f; --warn:#f0b43a; --warn-soft:#3a2d10;
+  --bad:#ff8a80; --bad-soft:#40201d; --info:#79b2ee; --info-soft:#152b45; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-body);
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+.shell{max-width:1180px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:18px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--accent);display:grid;place-items:center}
+.mark svg{width:18px;height:18px}
+.brand small{display:block;font:500 11px var(--font-body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.who{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:start;padding-bottom:48px}
+nav.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:12px}
+nav.side button{display:flex;justify-content:space-between;align-items:center;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:9px;cursor:pointer;color:var(--muted);font-weight:500}
+nav.side button:hover{background:var(--surface-2);color:var(--fg)}
+nav.side button[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.badge{background:var(--gold);color:#201400;border-radius:999px;font-size:11px;font-weight:600;padding:1px 7px}
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.head h1{font-size:26px}
+.head p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font:700 26px var(--font-display);font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.kpi.hero .l,.kpi.hero .s{color:inherit;opacity:.8}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.panel h2{font-size:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.two{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:9px;cursor:pointer;font-weight:500}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.sub{display:block;font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-awaiting{background:var(--warn-soft);color:var(--warn)}
+.p-confirmed{background:var(--info-soft);color:var(--info)}
+.p-out{background:var(--accent-soft);color:var(--accent)}
+.p-delivered{background:var(--good-soft);color:var(--good)}
+.p-failed{background:var(--bad-soft);color:var(--bad)}
+.p-active{background:var(--good-soft);color:var(--good)}
+.p-pending{background:var(--warn-soft);color:var(--warn)}
+.p-paid{background:var(--good-soft);color:var(--good)}
+.products{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.prod{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{height:110px;display:grid;place-items:center;font:700 34px var(--font-display);color:rgba(255,255,255,.92)}
+.prod .body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.prod h3{font-size:15px}
+.rows{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px}
+.rows span:nth-child(odd){color:var(--muted)}
+.rows span:nth-child(even){text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.profit{color:var(--good)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--surface-2);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+form.f{display:grid;gap:14px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-weight:500;font-size:13px}
+label.fl small{font-weight:400;color:var(--muted)}
+input,select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer}
+.opt input{width:auto;margin-top:3px}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt b{display:block}
+.opt span{color:var(--muted);font-size:12.5px}
+.sumrow{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.sumrow:last-child{border-bottom:0}
+.sumrow.big{font:700 17px var(--font-display);padding-top:10px}
+.note{background:var(--gold-soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--fg)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
+.flow i{font-style:normal;opacity:.5}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:500;font-size:13px}
+.tabs button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:8px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;font-size:11px;color:var(--muted)}
+.bars span.b{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.bars span.b.today{background:var(--gold)}
+.track{display:flex;flex-direction:column;gap:10px}
+.mod{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.mod:last-child{border-bottom:0}
+.mod input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.mod b{display:block}
+.mod span{color:var(--muted);font-size:13px}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:500;z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+.empty{color:var(--muted);padding:18px;text-align:center}
+.demo{font-size:12px;color:var(--muted);text-align:center;padding:8px 0 24px}
+@media (max-width:820px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:14px}
+  nav.side{flex-direction:row;overflow-x:auto;position:static;gap:6px;padding-bottom:4px}
+  nav.side button{white-space:nowrap;gap:8px;background:var(--surface);border:1px solid var(--line)}
+  .two{grid-template-columns:minmax(0,1fr)}
+  .head h1{font-size:22px}
+}
+@media (prefers-reduced-motion:no-preference){.toast{animation:up .2s ease-out}@keyframes up{from{opacity:0;transform:translate(-50%,8px)}}}
+
+.p-new{background:var(--warn-soft);color:var(--warn)}
+.p-cancelled,.p-paused{background:var(--surface-2);color:var(--muted)}
+.flow .step{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 12px 3px 4px;color:var(--fg);font-weight:500}
+.flow .step b{width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:11px}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;flex:none;font-size:13px}
+.leads{grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.lead{display:flex;flex-direction:column;gap:12px}
+.lead.late{border-color:var(--bad)}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px}.chk input{width:auto}
+.flow i{display:none}
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4"/></svg></div>
+      <div>TrackFastGH<small>Demo with sample data</small></div>
+    </div>
+    <div class="who" id="who"></div>
+    <div class="seg" role="group" aria-label="Viewing as">
+      <button id="role-reseller" aria-pressed="true">Reseller</button>
+      <button id="role-sales" aria-pressed="false">Sales team</button>
+      <button id="role-admin" aria-pressed="false">Admin</button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="side" id="nav" aria-label="Sections"></nav>
+    <main id="app"></main>
+  </div>
+  <div class="demo">Sample data only. Everything resets when the page reloads.</div>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ---------- data ---------- */
+const FEE = 50;               // commitment fee, collected by sales when they confirm
+const SLA_MAX = 24;           // hours from confirmation to delivery
+const NEXT_FRI = 'Fri 20 Nov', LAST_FRI = 'Fri 13 Nov';
+const REGIONS = {'Greater Accra':25,'Ashanti':40,'Central':40,'Western':45,'Western North':55,'Eastern':40,'Volta':50,'Oti':55,'Bono':55,'Bono East':55,'Ahafo':55,'Northern':60,'Savannah':60,'North East':65,'Upper East':65,'Upper West':65};
+const PRODUCTS = [
+ {id:'p1',name:'Glow Serum Set',cat:'Skincare',price:160,comm:45,stock:240,hue:'#0b6e5c',media:'8 images · 3 videos',cap:'Glowing skin in 14 days. Order now and pay when it arrives, delivered nationwide.'},
+ {id:'p2',name:'Wireless Earbuds Pro',cat:'Gadgets',price:220,comm:60,stock:96,hue:'#1d5fa8',media:'6 images · 2 videos',cap:'Crystal sound, 24hr battery. Order now, pay on delivery anywhere in Ghana.'},
+ {id:'p3',name:'Smart Fitness Band',cat:'Gadgets',price:180,comm:50,stock:130,hue:'#7a4bb8',media:'5 images · 2 videos',cap:'Track steps, sleep and heart rate. Pay on delivery.'},
+ {id:'p4',name:'Portable Blender',cat:'Home',price:200,comm:55,stock:58,hue:'#c2570c',media:'7 images · 4 videos',cap:'Fresh smoothies anywhere, USB rechargeable. Delivered to your door, pay on delivery.'},
+ {id:'p5',name:'LED Ring Light Kit',cat:'Creators',price:170,comm:45,stock:12,hue:'#b3261e',media:'4 images · 1 video',cap:'Look great on camera. Tripod included. Pay on delivery.'},
+ {id:'p6',name:'Leather Crossbody Bag',cat:'Fashion',price:260,comm:70,stock:44,hue:'#8a6a1f',media:'9 images · 2 videos',cap:'Everyday carry in genuine leather. Order today, pay on delivery.'}
+];
+const RESELLERS = [
+ {id:'r1',name:'Kwame Asante',school:'KNUST',joined:'Sep 2026',status:'active'},
+ {id:'r2',name:'Ama Serwaa',school:'UG Legon',joined:'Aug 2026',status:'active'},
+ {id:'r3',name:'Yaw Mensah',school:'UCC',joined:'Oct 2026',status:'active'},
+ {id:'r4',name:'Efua Boateng',school:'UEW',joined:'Nov 2026',status:'pending'}
+];
+const ME='r1';
+let seq=1060;
+const O=(rid,pid,qty,name,phone,region,city,status,ago,hrs,x={})=>({id:'TF-'+(seq++),rid,pid,qty,name,phone,region,city,address:x.addr||'',status,ago,hrs,paid:!!x.paid,wait:x.wait||0,settled:!!x.settled,tries:0});
+const state={
+  role:'reseller',view:'dashboard',filter:'all',sel:null,
+  orders:[
+   O('r1','p1',1,'Akosua Frimpong','024 412 3398','Ashanti','Kumasi','delivered',12,14,{paid:true,settled:true,addr:'Ahodwo, near the Total station'}),
+   O('r1','p2',1,'Daniel Quaye','055 920 1174','Greater Accra','Accra','delivered',9,8,{paid:true,settled:true,addr:'Madina, Zongo junction'}),
+   O('r1','p4',2,'Nana Adjei','020 551 7742','Greater Accra','Tema','delivered',7,11,{paid:true,settled:true,addr:'Community 8'}),
+   O('r1','p3',1,'Selina Tetteh','054 310 6620','Western','Takoradi','delivered',2,19,{paid:true,addr:'Market Circle'}),
+   O('r1','p1',2,'Grace Ofori','027 884 5001','Northern','Tamale','delivered',1,22,{paid:true,addr:'Lamashegu'}),
+   O('r1','p6',1,'Michael Ansah','050 227 9183','Eastern','Koforidua','failed',3,16,{paid:true,addr:'Adweso'}),
+   O('r1','p1',1,'Esi Mensima','024 773 6215','Central','Cape Coast','out',1,9,{paid:true,addr:'Abura'}),
+   O('r1','p6',1,'Kojo Bentil','054 661 2290','Volta','Ho','confirmed',0,3,{paid:false,addr:'Ho Bankoe'}),
+   O('r1','p4',1,'Linda Boakye','020 663 2287','Ashanti','Obuasi','new',0,0,{wait:12}),
+   O('r1','p2',1,'Joseph Armah','055 100 4890','Bono','Sunyani','new',0,0,{wait:4}),
+   O('r2','p2',2,'Abena Pokua','024 889 1155','Greater Accra','Accra','delivered',4,10,{paid:true,addr:'Osu'}),
+   O('r2','p6',1,'Fiifi Quansah','027 304 8812','Central','Winneba','out',1,21,{paid:true,addr:'Winneba junction'}),
+   O('r2','p1',3,'Mariam Issah','027 119 0846','Upper East','Bolgatanga','confirmed',1,26,{paid:true,addr:'Zuarungu'}),
+   O('r2','p5',1,'Kwesi Darko','050 880 1172','Greater Accra','Kasoa','new',0,0,{wait:27}),
+   O('r3','p4',1,'Kojo Sarpong','054 442 7731','Greater Accra','Accra','delivered',5,13,{paid:true,addr:'Dansoman'}),
+   O('r3','p3',2,'Ernest Appiah','050 998 3302','Upper West','Wa','out',0,7,{paid:true,addr:'Wa Central'}),
+   O('r3','p5',1,'Rita Nkansah','020 215 6678','Volta','Hohoe','failed',4,18,{paid:true,addr:'Hohoe'})
+  ],
+  campaigns:[
+   {id:'c1',rid:'r1',pid:'p1',mode:'self',budget:0,spent:120,status:'running'},
+   {id:'c2',rid:'r1',pid:'p6',mode:'managed',budget:30,spent:210,status:'running'},
+   {id:'c3',rid:'r1',pid:'p2',mode:'self',budget:0,spent:45,status:'paused'},
+   {id:'c4',rid:'r1',pid:'p4',mode:'self',budget:0,spent:60,status:'running'},
+   {id:'c5',rid:'r1',pid:'p3',mode:'self',budget:0,spent:35,status:'running'},
+   {id:'c6',rid:'r2',pid:'p2',mode:'managed',budget:40,spent:260,status:'running'},
+   {id:'c7',rid:'r2',pid:'p6',mode:'self',budget:0,spent:90,status:'running'},
+   {id:'c8',rid:'r3',pid:'p4',mode:'managed',budget:25,spent:0,status:'pending'}
+  ],
+  payouts:[]
+};
+const prod=id=>PRODUCTS.find(p=>p.id===id), res=id=>RESELLERS.find(r=>r.id===id);
+const delFee=r=>REGIONS[r]??50;
+const collect=o=>prod(o.pid).price*o.qty+delFee(o.region)-(o.paid?FEE:0);
+const comm=o=>prod(o.pid).comm*o.qty;
+const money=n=>'GH₵'+Number(n).toLocaleString('en-GH',{maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STATUS={new:'New lead',confirmed:'Confirmed',out:'Out for delivery',delivered:'Delivered',failed:'Failed',cancelled:'Declined'};
+const pill=s=>`<span class="pill p-${s}">${STATUS[s]||s[0].toUpperCase()+s.slice(1)}</span>`;
+const OPEN=['confirmed','out'];
+const dayLabel=a=>a===0?'Today':a===1?'Yesterday':a+' days ago';
+const sla=o=>o.hrs>SLA_MAX?['Late','failed']:o.hrs>=18?['Due soon','pending']:['On track','active'];
+const unsettled=rid=>state.orders.filter(o=>o.rid===rid&&o.status==='delivered'&&!o.settled);
+const rate=l=>{const d=l.filter(o=>o.status==='delivered').length,f=l.filter(o=>o.status==='failed').length;return d+f?Math.round(d/(d+f)*100):null};
+function wallet(rid){
+  const mine=state.orders.filter(o=>o.rid===rid);
+  const payable=unsettled(rid).reduce((s,o)=>s+comm(o),0);
+  const pending=mine.filter(o=>OPEN.includes(o.status)).reduce((s,o)=>s+comm(o),0);
+  const paid=state.payouts.filter(p=>p.rid===rid).reduce((s,p)=>s+p.amt,0);
+  return {payable,pending,paid};
+}
+/* seed payout history from settled orders */
+RESELLERS.forEach(r=>{const a=state.orders.filter(o=>o.rid===r.id&&o.settled).reduce((s,o)=>s+comm(o),0);if(a)state.payouts.push({id:'P-'+r.id,rid:r.id,week:LAST_FRI,amt:a,n:state.orders.filter(o=>o.rid===r.id&&o.settled).length});});
+
+/* ---------- nav ---------- */
+const NAV={
+ reseller:[['dashboard','Dashboard'],['products','Products'],['campaigns','Ad campaigns'],['orders','My orders'],['earnings','Earnings'],['guide','How it works']],
+ sales:[['leads','Leads'],['handled','Handled'],['guide','How it works']],
+ admin:[['overview','Overview'],['delivery','Delivery board'],['addesk','Ad desk'],['resellers','Resellers'],['payouts','Payouts'],['stock','Products'],['guide','How it works']]
+};
+const WHO={reseller:'Signed in as Kwame Asante, reseller',sales:'Signed in as Abigail, sales team',admin:'TrackFastGH operations'};
+function badgeFor(v){
+  let n=0;
+  if(state.role==='sales'&&v==='leads')n=state.orders.filter(o=>o.status==='new').length;
+  if(state.role==='admin'&&v==='delivery')n=state.orders.filter(o=>OPEN.includes(o.status)).length;
+  if(state.role==='admin'&&v==='addesk')n=state.campaigns.filter(c=>c.status==='pending').length;
+  if(state.role==='admin'&&v==='resellers')n=RESELLERS.filter(r=>r.status==='pending').length;
+  return n?`<span class="badge">${n}</span>`:'';
+}
+function go(v){state.view=v;try{history.replaceState(null,'','#'+v)}catch(e){}draw();window.scrollTo(0,0)}
+function setRole(r){state.role=r;state.view=NAV[r][0][0];state.filter='all';draw()}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2800)}
+
+/* ---------- shared pieces ---------- */
+const head=(t,sub,right='')=>`<div class="head"><div><h1>${t}</h1>${sub?`<p>${sub}</p>`:''}</div>${right}</div>`;
+const kpi=(l,v,s='',c='')=>`<div class="kpi ${c}"><span class="l">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
+function statusCell(o){
+  if(OPEN.includes(o.status)){const [l,c]=sla(o);return `${pill(o.status)}<span class="sub"><span class="pill p-${c}" style="padding:0 8px;font-size:11px">${l}</span> ${o.hrs}h of ${SLA_MAX}h</span>`}
+  if(o.status==='delivered')return `${pill('delivered')}<span class="sub">In ${o.hrs}h${o.hrs<=SLA_MAX?'':' (late)'}</span>`;
+  return pill(o.status);
+}
+function resellerOrders(list){
+  if(!list.length)return `<div class="empty">No orders here yet.</div>`;
+  return `<div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Product</th><th class="r">Your commission</th><th>Status</th><th>Payout</th></tr></thead><tbody>${list.map(o=>{
+    const p=prod(o.pid),fn=o.name.split(' ');
+    return `<tr><td><b>${o.id}</b><span class="sub">${dayLabel(o.ago)}</span></td><td>${esc(fn[0]+' '+(fn[1]||'')[0]+'.')}<span class="sub">${esc(o.region)}</span></td><td>${esc(p.name)}<span class="sub">Qty ${o.qty}</span></td>
+    <td class="r num ${['failed','cancelled'].includes(o.status)?'':'profit'}">${['failed','cancelled'].includes(o.status)?'–':money(comm(o))}</td><td>${o.status==='new'?'<span class="pill p-pending">With sales team</span>':statusCell(o)}</td>
+    <td>${o.status==='delivered'?(o.settled?`<span class="pill p-paid">Paid</span>`:`<span class="sub">Payable ${NEXT_FRI}</span>`):'<span class="sub">–</span>'}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+function opsOrders(list,withAction){
+  if(!list.length)return `<div class="empty">Nothing here.</div>`;
+  return `<div class="tablewrap"><table><thead><tr><th>Order</th><th>Reseller</th><th>Customer</th><th>Product</th><th class="r">Collect on delivery</th><th>Status</th>${withAction?'<th>Action</th>':''}</tr></thead><tbody>${list.map(o=>{
+    const p=prod(o.pid);
+    return `<tr><td><b>${o.id}</b><span class="sub">${dayLabel(o.ago)}</span></td><td>${esc(res(o.rid).name)}</td>
+    <td>${esc(o.name)}<span class="sub">${esc(o.city)}, ${esc(o.region)} · ${esc(o.phone)}</span></td><td>${esc(p.name)}<span class="sub">Qty ${o.qty}</span></td>
+    <td class="r num">${money(collect(o))}<span class="sub">${o.paid?'Fee received':'No fee taken'}</span></td><td>${statusCell(o)}</td>${withAction?`<td>${actionFor(o)}</td>`:''}</tr>`}).join('')}</tbody></table></div>`;
+}
+function actionFor(o){
+  if(o.status==='confirmed')return `<button class="btn sm primary" data-act="dispatch" data-id="${o.id}">Dispatch</button>`;
+  if(o.status==='out')return `<div class="actions" style="margin:0"><button class="btn sm primary" data-act="delivered" data-id="${o.id}">Delivered</button><button class="btn sm" data-act="failed" data-id="${o.id}">Failed</button></div>`;
+  return `<span class="sub">${o.status==='delivered'?'Commission credited':o.status==='failed'?'Fee kept for logistics':''}</span>`;
+}
+const tabsFor=(items,cur,count)=>`<div class="tabs">${items.map(t=>`<button data-filter="${t[0]}" aria-pressed="${cur===t[0]}">${t[1]} <span class="num">${count(t[0])}</span></button>`).join('')}</div>`;
+const flowStrip=()=>`<div class="flow">${['Reseller runs ads','Order comes in','Sales confirms','We deliver in 6–24h','Dashboard updates','Paid every Friday'].map((s,i)=>`<span class="step"><b>${i+1}</b>${s}</span>`).join('')}</div>`;
+
+/* ---------- reseller ---------- */
+function vDashboard(){
+  const mine=state.orders.filter(o=>o.rid===ME),w=wallet(ME),r=rate(mine);
+  const st=['new','confirmed','out','delivered','failed'];
+  const run=state.campaigns.filter(c=>c.rid===ME&&c.status==='running').length;
+  return head('Hello, Kwame','This is your home screen. It shows what you have earned, what is on its way and when you are paid.',`<button class="btn primary" data-go="campaigns">Start ads</button>`)+
+  `<div class="grid kpis">${kpi('Payable this Friday',money(w.payable),'Delivered orders, paid '+NEXT_FRI,'hero')}${kpi('Coming in',money(w.pending),'Confirmed or out for delivery')}${kpi('Orders this week',mine.filter(o=>o.ago<=6).length,mine.length+' in total')}${kpi('Delivery rate',r===null?'–':r+'%','Delivered vs failed')}</div>
+  ${flowStrip()}
+  <div class="grid two"><div class="panel"><h2>Latest orders <button class="btn sm" data-go="orders">View all</button></h2>${resellerOrders(mine.slice().sort((a,b)=>a.ago-b.ago).slice(0,5))}</div>
+  <div class="grid" style="align-content:start"><div class="panel"><h2>Where your orders are</h2><div class="track">${st.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center">${pill(s)}<b class="num">${mine.filter(o=>o.status===s).length}</b></div>`).join('')}</div></div>
+  <div class="panel"><h2>Ads <button class="btn sm" data-go="campaigns">Manage</button></h2><p style="margin:0;color:var(--muted)">${run} campaign${run===1?'':'s'} running. Orders from your ads are credited to you automatically.</p></div></div></div>`;
+}
+function vProducts(){
+  return head('Products','Pick a product to advertise. You earn the commission shown each time an order is delivered.')+
+  `<div class="grid products">${PRODUCTS.map(p=>`<div class="prod"><div class="thumb" style="background:${p.hue}">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div><div class="body">
+  <div><h3>${p.name}</h3><span class="sub">${p.cat}</span></div>
+  <div class="rows"><span>Customer price</span><span>${money(p.price)}</span><span>Your commission</span><span class="profit">${money(p.comm)}</span><span>Stock</span><span>${p.stock<20?`<span style="color:var(--bad)">${p.stock} left</span>`:p.stock}</span></div>
+  <div class="chips"><span class="chip">Promo kit</span><span class="chip">${p.media}</span></div>
+  <div class="actions"><button class="btn sm" data-act="copy" data-id="${p.id}">Copy ad caption</button><button class="btn sm primary" data-act="advertise" data-id="${p.id}">Advertise this</button></div></div></div>`).join('')}</div>`;
+}
+function cpo(c){const n=state.orders.filter(o=>o.rid===c.rid&&o.pid===c.pid).length;return n&&c.spent?money(Math.round(c.spent/n)):'–'}
+function vCampaigns(){
+  const mine=state.campaigns.filter(c=>c.rid===ME),p0=prod(state.sel||'p1');
+  return head('Ad campaigns','Choose a product and decide who runs the ads. Every order that comes from your campaign is credited to you.')+
+  `<div class="grid two"><div class="panel tablewrap"><h2>Your campaigns</h2>${mine.length?`<table><thead><tr><th>Product</th><th>Run by</th><th class="r">Spent</th><th class="r">Orders</th><th class="r">Cost per order</th><th>Status</th></tr></thead><tbody>${mine.map(c=>`<tr><td>${esc(prod(c.pid).name)}${c.mode==='self'?`<span class="sub">Link: tfgh.link/kwame/${c.pid}</span>`:`<span class="sub">${money(c.budget)} per day</span>`}</td><td>${c.mode==='self'?'You':'TrackFastGH'}</td><td class="r num">${money(c.spent)}</td><td class="r num">${state.orders.filter(o=>o.rid===c.rid&&o.pid===c.pid).length}</td><td class="r num">${cpo(c)}</td><td>${pill(c.status==='pending'?'pending':c.status==='running'?'active':'paused')}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No campaigns yet.</div>'}</div>
+  <form class="panel f" id="cForm"><h2>New campaign</h2>
+   <label class="fl">Product<select id="cProd">${PRODUCTS.map(p=>`<option value="${p.id}" ${p.id===p0.id?'selected':''}>${p.name}</option>`).join('')}</select></label>
+   <div class="grid" style="gap:8px">
+    <label class="opt"><input type="radio" name="cMode" value="self" checked><div><b>I will run the ads</b><span>You get a tracking link and the promo kit. Orders from the link are credited to you.</span></div></label>
+    <label class="opt"><input type="radio" name="cMode" value="managed"><div><b>Run them for me</b><span>Our team creates, runs and optimises the ads. You only set the budget.</span></div></label>
+   </div>
+   <label class="fl" id="cBudgetWrap" hidden>Daily ad budget (GH₵)<input id="cBudget" type="number" min="20" value="30"><small>Minimum GH₵20 per day. Ad spend is paid by you.</small></label>
+   <div><button class="btn primary" type="submit">Create campaign</button></div></form></div>`;
+}
+function vOrders(){
+  const mine=state.orders.filter(o=>o.rid===ME);
+  const tabs=[['all','All'],['new','With sales'],['confirmed','Confirmed'],['out','Out for delivery'],['delivered','Delivered'],['failed','Failed']];
+  const list=(state.filter==='all'?mine:mine.filter(o=>o.status===state.filter)).slice().sort((a,b)=>a.ago-b.ago);
+  return head('My orders','Read-only. Our sales team speaks to the customers and our riders deliver, so you only follow progress here.')+
+  tabsFor(tabs,state.filter,k=>k==='all'?mine.length:mine.filter(o=>o.status===k).length)+`<div class="panel">${resellerOrders(list)}</div>`;
+}
+function vEarnings(){
+  const w=wallet(ME),mine=state.payouts.filter(p=>p.rid===ME),due=unsettled(ME);
+  return head('Earnings','Commission is added when an order is delivered. All delivered orders for the week are paid to your Mobile Money every Friday.')+
+  `<div class="grid kpis">${kpi('Payable '+NEXT_FRI,money(w.payable),due.length+' delivered order'+(due.length===1?'':'s'),'hero')}${kpi('Coming in',money(w.pending),'Not delivered yet')}${kpi('Paid to date',money(w.paid),'Since you joined')}${kpi('Paid to','024 412 ••••','Mobile Money')}</div>
+  <div class="grid two"><div class="panel"><h2>Included in the next payout</h2>${due.length?`<table style="min-width:0"><tbody>${due.map(o=>`<tr><td><b>${o.id}</b><span class="sub">${esc(prod(o.pid).name)} × ${o.qty}</span></td><td>${dayLabel(o.ago)}</td><td class="r num profit">${money(comm(o))}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nothing delivered since the last payout.</div>'}</div>
+  <div class="panel"><h2>Payout history</h2>${mine.length?`<table style="min-width:0"><tbody>${mine.slice().reverse().map(p=>`<tr><td>${p.week}<span class="sub">${p.n} orders</span></td><td class="num">${money(p.amt)}</td><td><span class="pill p-paid">Paid</span></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No payouts yet.</div>'}</div></div>`;
+}
+
+/* ---------- sales ---------- */
+function vLeads(){
+  const leads=state.orders.filter(o=>o.status==='new').sort((a,b)=>b.wait-a.wait);
+  const done=state.orders.filter(o=>['confirmed','out','delivered','failed'].includes(o.status)).length,dec=state.orders.filter(o=>o.status==='cancelled').length;
+  return head('Leads','Orders from the resellers\' ads land here. Call each customer, check the details and confirm. Longest waiting first.',`<button class="btn" data-act="simulate">Simulate incoming order</button>`)+
+  `<div class="grid kpis">${kpi('Waiting for a call',leads.length,'Aim to call within 15 minutes','hero')}${kpi('Confirm rate',done+dec?Math.round(done/(done+dec)*100)+'%':'–','Confirmed vs declined')}${kpi('Longest wait',leads.length?leads[0].wait+' min':'–','')}</div>`+
+  (leads.length?`<div class="grid leads">${leads.map(o=>{const p=prod(o.pid);return `<div class="panel lead ${o.wait>20?'late':''}">
+   <div style="display:flex;justify-content:space-between;gap:8px"><div><b style="font-size:16px">${esc(o.name)}</b><span class="sub">${esc(o.phone)} · ${esc(o.city)}, ${esc(o.region)}</span></div><span class="pill ${o.wait>20?'p-failed':'p-pending'}">${o.wait} min</span></div>
+   <div class="rows"><span>Product</span><span>${esc(p.name)} × ${o.qty}</span><span>Delivery</span><span>${money(delFee(o.region))}</span><span>Total before fee</span><span>${money(p.price*o.qty+delFee(o.region))}</span><span>Ad by</span><span>${esc(res(o.rid).name)}</span></div>
+   <label class="fl">Delivery address<input id="addr-${o.id}" placeholder="Area, street, nearest landmark"></label>
+   <label class="chk"><input type="checkbox" id="fee-${o.id}"> Commitment fee of ${money(FEE)} collected</label>
+   <div class="actions"><button class="btn sm primary" data-act="confirm" data-id="${o.id}">Confirm order</button><button class="btn sm" data-act="noanswer" data-id="${o.id}">No answer${o.tries?' ('+o.tries+')':''}</button><button class="btn sm" data-act="decline" data-id="${o.id}">Declined</button></div></div>`}).join('')}</div>`:`<div class="panel"><div class="empty">No leads waiting. New orders will appear here.</div></div>`);
+}
+function vHandled(){
+  const list=state.orders.filter(o=>o.status!=='new').sort((a,b)=>a.ago-b.ago);
+  return head('Handled','Every order you have confirmed or declined, with where it is now.')+`<div class="panel">${opsOrders(list.filter(o=>o.status!=='cancelled'),false)}</div>`;
+}
+
+/* ---------- admin ---------- */
+function vOverview(){
+  const all=state.orders,del=all.filter(o=>o.status==='delivered'),open=all.filter(o=>OPEN.includes(o.status));
+  const ontime=del.length?Math.round(del.filter(o=>o.hrs<=SLA_MAX).length/del.length*100):null,avg=del.length?(del.reduce((s,o)=>s+o.hrs,0)/del.length).toFixed(1):'–';
+  const late=open.filter(o=>o.hrs>SLA_MAX).length;
+  const days=[6,5,4,3,2,1,0].map(a=>({a,n:all.filter(o=>o.ago===a).length})),mx=Math.max(1,...days.map(d=>d.n));
+  const st=['new','confirmed','out','delivered','failed','cancelled'];
+  return head('Overview','A snapshot of orders, delivery speed and what is waiting on your team.')+
+  `<div class="grid kpis">${kpi('Orders',all.length,'Last 14 days','hero')}${kpi('Delivered within 24h',ontime===null?'–':ontime+'%','Of delivered orders')}${kpi('Average delivery time',avg+(avg==='–'?'':'h'),'From confirmation')}${kpi('Late right now',late,late?'Needs action':'None','')}${kpi('Cash on the road',money(open.filter(o=>o.status==='out').reduce((s,o)=>s+collect(o),0)),'To collect on delivery')}</div>
+  <div class="grid two"><div class="panel"><h2>Orders by day</h2><div class="bars">${days.map(d=>`<div><span class="num">${d.n}</span><span class="b ${d.a===0?'today':''}" style="height:${d.n/mx*80}%"></span><span>${d.a===0?'Today':d.a+'d'}</span></div>`).join('')}</div></div>
+  <div class="panel"><h2>Pipeline</h2><div class="track">${st.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center">${pill(s)}<b class="num">${all.filter(o=>o.status===s).length}</b></div>`).join('')}</div></div></div>`;
+}
+function vDelivery(){
+  const base=state.orders.filter(o=>['confirmed','out','delivered','failed'].includes(o.status));
+  const tabs=[['all','All'],['confirmed','Confirmed'],['out','Out for delivery'],['delivered','Delivered'],['failed','Failed']];
+  const list=(state.filter==='all'?base:base.filter(o=>o.status===state.filter)).slice().sort((a,b)=>(OPEN.includes(b.status)-OPEN.includes(a.status))||b.hrs-a.hrs||a.ago-b.ago);
+  return head('Delivery board','Confirmed orders to dispatch and deliver. Each order has a clock that starts at confirmation. The target is delivery within 6 to 24 hours.',`<button class="btn" data-act="skip">Demo: skip ahead 6 hours</button>`)+
+  tabsFor(tabs,state.filter,k=>k==='all'?base.length:base.filter(o=>o.status===k).length)+`<div class="panel">${opsOrders(list,true)}</div>`;
+}
+function vAdDesk(){
+  const list=state.campaigns.filter(c=>c.mode==='managed');
+  return head('Ad desk','Campaigns that resellers asked us to run. Launch new requests, pause or resume running ones.')+
+  `<div class="panel tablewrap"><table><thead><tr><th>Reseller</th><th>Product</th><th class="r">Daily budget</th><th class="r">Spent</th><th class="r">Orders</th><th>Status</th><th></th></tr></thead><tbody>${list.map(c=>`<tr><td>${esc(res(c.rid).name)}</td><td>${esc(prod(c.pid).name)}</td><td class="r num">${money(c.budget)}</td><td class="r num">${money(c.spent)}</td><td class="r num">${state.orders.filter(o=>o.rid===c.rid&&o.pid===c.pid).length}</td><td>${pill(c.status==='running'?'active':c.status)}</td><td>${c.status==='pending'?`<button class="btn sm primary" data-act="launch" data-id="${c.id}">Launch</button>`:c.status==='running'?`<button class="btn sm" data-act="pausec" data-id="${c.id}">Pause</button>`:`<button class="btn sm" data-act="launch" data-id="${c.id}">Resume</button>`}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function vResellers(){
+  return head('Resellers','Approve new sign-ups and see who brings orders that actually get delivered.')+
+  `<div class="panel tablewrap"><table><thead><tr><th>Reseller</th><th>Joined</th><th class="r">Orders</th><th class="r">Delivery rate</th><th class="r">Earned</th><th>Status</th><th></th></tr></thead><tbody>${RESELLERS.map(r=>{
+   const l=state.orders.filter(o=>o.rid===r.id),sr=rate(l),earn=l.filter(o=>o.status==='delivered').reduce((s,o)=>s+comm(o),0);
+   return `<tr><td>${r.name}<span class="sub">${r.school}</span></td><td>${r.joined}</td><td class="r num">${l.length}</td><td class="r num">${sr===null?'–':sr+'%'}</td><td class="r num">${money(earn)}</td><td>${pill(r.status)}</td><td>${r.status==='pending'?`<button class="btn sm primary" data-act="approve" data-id="${r.id}">Approve</button>`:''}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+function vPayouts(){
+  const rows=RESELLERS.map(r=>({r,u:unsettled(r.id)})).filter(x=>x.u.length),total=rows.reduce((s,x)=>s+x.u.reduce((a,o)=>a+comm(o),0),0);
+  return head('Payouts','Every Friday, pay each reseller the commission on orders delivered that week. Review the list, then run the payout.',`<button class="btn primary" data-act="runpay" ${rows.length?'':'disabled'}>Run payout for ${NEXT_FRI}</button>`)+
+  `<div class="grid kpis">${kpi('This week\'s payout',money(total),rows.length+' resellers','hero')}</div>
+  <div class="panel tablewrap"><h2>Due ${NEXT_FRI}</h2>${rows.length?`<table><thead><tr><th>Reseller</th><th class="r">Delivered orders</th><th class="r">Commission</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x.r.name}</td><td class="r num">${x.u.length}</td><td class="r num">${money(x.u.reduce((a,o)=>a+comm(o),0))}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">All caught up. Nothing due.</div>'}</div>
+  <div class="panel tablewrap"><h2>Past payouts</h2><table><thead><tr><th>Week</th><th>Reseller</th><th class="r">Orders</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>${state.payouts.slice().reverse().map(p=>`<tr><td>${p.week}</td><td>${esc(res(p.rid).name)}</td><td class="r num">${p.n}</td><td class="r num">${money(p.amt)}</td><td><span class="pill p-paid">Paid</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+function vStock(){
+  return head('Products','The catalogue resellers advertise. Keep stock and commission up to date.')+
+  `<div class="panel tablewrap"><table><thead><tr><th>Product</th><th class="r">Customer price</th><th class="r">Commission</th><th class="r">In stock</th><th class="r">Delivered</th></tr></thead><tbody>${PRODUCTS.map(p=>`<tr><td>${p.name}<span class="sub">${p.cat}</span></td><td class="r num">${money(p.price)}</td><td class="r num">${money(p.comm)}</td><td class="r num">${p.stock<20?`<span class="pill p-failed">${p.stock} low</span>`:p.stock}</td><td class="r num">${state.orders.filter(o=>o.pid===p.id&&o.status==='delivered').reduce((s,o)=>s+o.qty,0)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- guide ---------- */
+const GUIDE={
+ reseller:{t:'How it works for resellers',s:'You advertise. We do everything else. You never speak to a customer.',steps:[
+  ['Pick a product','Open Products. Each one shows the customer price and the commission you earn per delivered order. Copy the ad caption and use the promo kit.'],
+  ['Start ads','Open Ad campaigns. Choose "I will run the ads" to get a tracking link, or "Run them for me" and set a daily budget. We create and run the ads.'],
+  ['Orders come in','When someone orders from your ad, it appears in My orders as "With sales team". It is credited to you automatically.'],
+  ['We confirm and deliver','Our sales team calls the customer and confirms. Once confirmed, the order is delivered within 6 to 24 hours. The customer pays on delivery anywhere in Ghana.'],
+  ['Watch it on the dashboard','Status updates on Dashboard and My orders as the order moves: confirmed, out for delivery, delivered.'],
+  ['Get paid on Friday','Open Earnings. Commission for orders delivered that week is sent to your Mobile Money every Friday. Failed or declined orders earn nothing.']]},
+ sales:{t:'How it works for the sales team',s:'You turn ad orders into confirmed deliveries. Speed matters.',steps:[
+  ['Open Leads','New orders appear here, longest waiting first. A red timer means the customer has waited more than 20 minutes.'],
+  ['Call the customer','Check the product, quantity and delivery region. Ask for the full address and nearest landmark and type it in.'],
+  ['Collect the commitment fee','Ask for the GH₵50 commitment fee and tick the box once received. It reduces what the rider collects and discourages failed deliveries.'],
+  ['Confirm, no answer or declined','Confirm starts the 24 hour delivery clock and sends the order to the delivery team. No answer keeps it in the queue and counts the attempt. Declined closes it.'],
+  ['Check Handled','Handled lists every order you confirmed and shows where it is now.']]},
+ admin:{t:'How it works for operations',s:'You keep orders moving, deliveries fast and resellers paid.',steps:[
+  ['Watch the Overview','Delivery within 24 hours, average delivery time and late orders tell you if the service is healthy.'],
+  ['Run the Delivery board','Confirmed orders wait here. Dispatch as soon as possible. When the rider reports back, mark Delivered or Failed. Delivered credits the reseller. Failed keeps the commitment fee for logistics.'],
+  ['Act on the clock','Each open order shows hours since confirmation. Due soon means 18 hours or more. Late means over 24 hours.'],
+  ['Use the Ad desk','Launch ads for resellers who asked us to run them. Pause or resume when needed.'],
+  ['Approve resellers','New sign-ups appear in Resellers. Approve them so they can start advertising.'],
+  ['Pay every Friday','Payouts lists what each reseller is owed for delivered orders. Run the payout once the money is sent.']]}
+};
+function vGuide(){
+  const g=GUIDE[state.role];
+  return head(g.t,g.s)+flowStrip()+`<div class="panel"><div class="track">${g.steps.map((s,i)=>`<div class="mod"><div class="num step-n">${i+1}</div><div><b>${s[0]}</b><span>${s[1]}</span></div></div>`).join('')}</div></div>
+  <div class="note">Delivery promise: once an order is confirmed it is delivered within 6 to 24 hours. Customers pay on delivery, nationwide.</div>`;
+}
+
+/* ---------- render ---------- */
+const VIEWS={dashboard:vDashboard,products:vProducts,campaigns:vCampaigns,orders:vOrders,earnings:vEarnings,leads:vLeads,handled:vHandled,overview:vOverview,delivery:vDelivery,addesk:vAdDesk,resellers:vResellers,payouts:vPayouts,stock:vStock,guide:vGuide};
+function draw(){
+  ['reseller','sales','admin'].forEach(r=>document.getElementById('role-'+r).setAttribute('aria-pressed',state.role===r));
+  document.getElementById('who').textContent=WHO[state.role];
+  if(!NAV[state.role].some(n=>n[0]===state.view))state.view=NAV[state.role][0][0];
+  document.getElementById('nav').innerHTML=NAV[state.role].map(n=>`<button data-go="${n[0]}" ${n[0]===state.view?'aria-current="page"':''}>${n[1]}${badgeFor(n[0])}</button>`).join('');
+  document.getElementById('app').innerHTML=VIEWS[state.view]();
+  const cf=document.getElementById('cForm');
+  if(cf){const w=document.getElementById('cBudgetWrap');cf.addEventListener('change',()=>{w.hidden=cf.querySelector('input[name=cMode]:checked').value!=='managed'});}
+  state.sel=null;
+}
+['reseller','sales','admin'].forEach(r=>document.getElementById('role-'+r).onclick=()=>setRole(r));
+
+const FIRST=['Akua','Kofi','Esi','Yaa','Kwabena','Naana','Selorm','Fatima'],LAST=['Owusu','Mensah','Tagoe','Abdul','Nyarko','Adomako','Amoah','Lartey'],PLACES=[['Greater Accra','Accra'],['Ashanti','Kumasi'],['Northern','Tamale'],['Western','Takoradi'],['Volta','Ho'],['Upper East','Bolgatanga'],['Bono','Sunyani']];
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return}
+  const f=e.target.closest('[data-filter]');if(f){state.filter=f.dataset.filter;draw();return}
+  const a=e.target.closest('[data-act]');if(!a)return;
+  const id=a.dataset.id,o=state.orders.find(x=>x.id===id);
+  switch(a.dataset.act){
+    case 'advertise':state.sel=id;state.view='campaigns';draw();window.scrollTo(0,0);break;
+    case 'copy':{const t=prod(id).cap;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Caption copied')).catch(()=>toast('Caption: '+t));break}
+    case 'confirm':{
+      const ad=document.getElementById('addr-'+id).value.trim();
+      if(!ad){toast('Enter the delivery address first');return}
+      o.address=ad;o.paid=document.getElementById('fee-'+id).checked;o.status='confirmed';o.hrs=0;o.ago=0;
+      toast(id+' confirmed. Delivery clock started: 24h.');draw();break}
+    case 'noanswer':o.tries++;toast('Attempt '+o.tries+' logged for '+o.name+(o.tries>=3?'. Consider closing this lead.':''));draw();break;
+    case 'decline':o.status='cancelled';toast(id+' closed as declined');draw();break;
+    case 'simulate':{
+      const rc=state.campaigns.filter(c=>c.status==='running'),c=rc[Math.floor(Math.random()*rc.length)],pl=PLACES[Math.floor(Math.random()*PLACES.length)];
+      const n=O(c.rid,c.pid,1+Math.floor(Math.random()*2),FIRST[Math.floor(Math.random()*8)]+' '+LAST[Math.floor(Math.random()*8)],'024 '+String(100+Math.floor(Math.random()*899))+' '+String(1000+Math.floor(Math.random()*8999)),pl[0],pl[1],'new',0,0,{wait:1});
+      state.orders.unshift(n);toast('New order from '+res(c.rid).name+'\'s ad: '+prod(c.pid).name);draw();break}
+    case 'dispatch':o.status='out';toast(id+' is out for delivery');draw();break;
+    case 'delivered':o.status='delivered';toast(id+' delivered in '+o.hrs+'h. '+money(comm(o))+' credited to '+res(o.rid).name);draw();break;
+    case 'failed':o.status='failed';toast(id+' failed. Commitment fee kept for logistics.');draw();break;
+    case 'skip':state.orders.filter(x=>OPEN.includes(x.status)).forEach(x=>x.hrs+=6);toast('Clock moved 6 hours. Check the Due soon and Late tags.');draw();break;
+    case 'launch':{const c=state.campaigns.find(x=>x.id===id);c.status='running';toast('Campaign running for '+res(c.rid).name);draw();break}
+    case 'pausec':{const c=state.campaigns.find(x=>x.id===id);c.status='paused';toast('Campaign paused');draw();break}
+    case 'approve':res(id).status='active';toast(res(id).name+' approved');draw();break;
+    case 'runpay':{
+      let n=0,tot=0;RESELLERS.forEach(r=>{const u=unsettled(r.id);if(u.length){const amt=u.reduce((s,x)=>s+comm(x),0);state.payouts.push({id:'P-'+Date.now()+r.id,rid:r.id,week:NEXT_FRI,amt,n:u.length});u.forEach(x=>x.settled=true);n++;tot+=amt}});
+      toast('Paid '+money(tot)+' to '+n+' reseller'+(n===1?'':'s'));draw();break}
+  }
+});
+document.addEventListener('submit',e=>{
+  if(e.target.id==='cForm'){
+    e.preventDefault();
+    const pid=document.getElementById('cProd').value,mode=e.target.querySelector('input[name=cMode]:checked').value,bud=+document.getElementById('cBudget').value;
+    if(mode==='managed'&&!(bud>=20)){toast('Daily budget must be at least GH₵20');return}
+    state.campaigns.unshift({id:'c'+(state.campaigns.length+1),rid:ME,pid,mode,budget:mode==='managed'?bud:0,spent:0,status:mode==='managed'?'pending':'running'});
+    toast(mode==='managed'?'Request sent. Our team will launch it within 24 hours.':'Campaign created. Your tracking link is in the table.');draw();
+  }
+});
+const h=(location.hash||'').slice(1);if(NAV.reseller.some(n=>n[0]===h))state.view=h;
+draw();
+</script>
+
+</body></html>
